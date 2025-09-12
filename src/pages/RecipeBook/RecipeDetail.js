@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+
 import {
   View,
   Text,
@@ -31,7 +31,8 @@ const RecipeDetail = ({ route, navigation }) => {
 
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [liked, setLiked] = useState(false);
+ 
+  
   const [ratingVisible, setRatingVisible] = useState(false); // quản lý hiển thị modal
   const [ratings, setRatings] = useState([]);
   const [newRating, setNewRating] = useState(0); // số sao mới chọn
@@ -40,28 +41,31 @@ const RecipeDetail = ({ route, navigation }) => {
   const [commentVisible, setCommentVisible] = useState(false);
   const [newComment, setNewComment] = useState("");
 
-
-  // const handleAddComment = () => {
-  //   if (!newComment.trim()) return;
-  //   const updatedComments = [...comments, { id: Date.now(), text: newComment }];
-  //   setComments(updatedComments);
-  //   setNewComment("");
-  // };
-
   // End coment
+  
+  const [liked, setLiked] = useState(false);
+  const [rated, setRated] = useState(false);
+  const [commented, setCommented] = useState(false);
 
   const fetchRecipeById = async (recipeId) => {
     try {
       const res = await recipesApi.getDetails(recipeId);
       setRecipe(res.data.data);
       setRatings(res.data.data.ratings)
+      setIsHidden(res.data.data.isHidden ?? false); // lấy từ API
       if (res?.data?.data?.likes) {
         setLiked(res?.data?.data?.likes == currentUserId)
       } else {
         setLiked(false)
       }
+
     } catch (err) {
-      console.error("Error fetching recipe detail:", err);
+      if (err.response?.status === 404) {
+        Alert.alert("Thông báo", "Sản phẩm đã bị ẩn hoặc xóa");
+        navigation.goBack(); // tên screen danh sách công thức
+      } else {
+        console.error(err);
+      }
     } finally {
       setLoading(false);
     }
@@ -81,6 +85,18 @@ const RecipeDetail = ({ route, navigation }) => {
     if (recipe && currentUserId) {
       setLiked(Array.isArray(recipe.likes) && recipe.likes.includes(currentUserId));
     }
+    // Commented
+    setCommented(
+      Array.isArray(recipe?.comments) &&
+      recipe.comments.some(c => String(c.user) === String(currentUserId))
+    );
+
+    // Rated
+    setRated(
+      Array.isArray(recipe?.ratings) &&
+      recipe.ratings.some(r => String(r.user) === String(currentUserId))
+    );
+
   }, [recipe, currentUserId]);
 
   const handleLike = async () => {
@@ -217,8 +233,6 @@ const RecipeDetail = ({ route, navigation }) => {
       await recipesApi.deleteRatingRecipes(id);
 
       // Cập nhật state cục bộ
-      // console.log("Before delete:", recipe.ratings.map(r => r.user));
-      // Cập nhật state cục bộ
       setRecipe((prev) => ({
         ...prev,
         ratings: [...(prev.ratings || []).filter((r) => r.user !== currentUserId)],
@@ -229,7 +243,89 @@ const RecipeDetail = ({ route, navigation }) => {
       console.error("Xóa rating thất bại:", err.response?.data || err.message);
     }
   };
+  
+  // ✅ Update rating
+  const handleUpdateRating = async () => {
+    const content = newRatingComment.trim();
+    if (!newRating || !content) {
+      Alert.alert("Error", "Vui lòng nhập đủ số sao và bình luận");
+      return;
+    }
+
+    try {
+      const data = { value: newRating, content };
+      const res = await recipesApi.UpdateRatingRecipes(id, data);
+      const updatedRating = res.data.data;
+
+      setRecipe((prev) => {
+        const filtered = (prev.ratings || []).filter(r => r.user !== currentUserId);
+        return { ...prev, ratings: [...filtered, updatedRating] };
+      });
+
+      setNewRating(0);
+      setNewRatingComment("");
+      Alert.alert("Success", "Rating đã được cập nhật!");
+    } catch (error) {
+      console.error("Update rating failed:", error.response?.data || error.message);
+      Alert.alert("Error", "Không thể cập nhật rating");
+    }
+  };
+
   // End Ratings
+  // Hide Recipe
+  
+  const [isHidden, setIsHidden] = useState(false);
+  const handleToggleVisible = async () => {
+    try {
+      if (isHidden) {
+        await recipesApi.unHideRecipe(recipe._id);
+        Alert.alert("Thành công", `${recipe._id} Sản phẩm đã được hiển thị lại`);
+        
+      } else {
+        await recipesApi.hideRecipe(recipe._id);
+        Alert.alert("Thành công", `${recipe._id} Sản phẩm đã được ẩn`);
+        
+      }
+
+      // Gọi lại API để sync
+      fetchRecipeById(recipe._id);
+    } catch (err) {
+      console.log(err);
+      Alert.alert("Lỗi", "Không thể cập nhật trạng thái sản phẩm");
+    }
+  };
+
+  const handleDeleteRecipe = () => {
+    Alert.alert(
+      "Xác nhận",
+      "Bạn có chắc chắn muốn xóa sản phẩm này?",
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Xóa",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await recipesApi.deleteRecipe(id);
+              Alert.alert("Thành công", "Sản phẩm đã được xóa");
+
+              // Điều hướng thẳng về tab Search (theo navigator bạn gửi trước đó)
+              navigation.navigate("MainTabs", { screen: "Search" });
+
+              // Hoặc nếu muốn chắc chắn là danh sách công thức:
+              // navigation.navigate("RecipesList");
+            } catch (err) {
+              console.error("Delete error:", err);
+              Alert.alert("Lỗi", "Không thể xóa sản phẩm");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+
+  // End Hide Recipe
   if (loading)
     return (
       <ActivityIndicator size="large" color="#FFD84D" style={{ marginTop: 50 }} />
@@ -280,9 +376,9 @@ const RecipeDetail = ({ route, navigation }) => {
 
             <TouchableOpacity onPress={() => setCommentVisible(true)}>
               <Ionicons
-                name="chatbubble-outline"   // 👈 đổi thành icon comment
+                name={commented ? "chatbubble" : "chatbubble-outline"}
                 size={24}
-                color="#000"
+                color={commented ? "#007bff" : "gray"} // xanh khi đã comment
                 style={styles.iconBtn}
               />
               <Text
@@ -291,6 +387,7 @@ const RecipeDetail = ({ route, navigation }) => {
                   fontSize: 22,
                   color: "red",       // chữ màu đỏ
                   fontWeight: "900",  // in đậm cho nổi bật (tuỳ chọn)
+                
                   position: "absolute",
                   top: -10,
                   right: 0
@@ -305,9 +402,9 @@ const RecipeDetail = ({ route, navigation }) => {
               style={{ flexDirection: "row", alignItems: "center", position: "relative" }}
             >
               <Ionicons
-                name={liked ? "star" : "star-outline"}
+                name={rated ? "star" : "star-outline"}
                 size={24}
-                color={liked ? "#ffbf00ff" : "gray"} // đỏ nếu đã like, xám nếu chưa
+                color={rated ? "#ffbf00ff" : "gray"} // đỏ nếu đã like, xám nếu chưa
                 style={styles.iconBtn}
               />
               <Text
@@ -328,7 +425,7 @@ const RecipeDetail = ({ route, navigation }) => {
             <TouchableOpacity onPress={() =>
               navigation.navigate("UpdateRecipe", {
                 id: recipe._id,
-                onUpdate: () => fetchRecipeById(recipe._id), // callback cập nhật state ở Detail
+
               })
             }>
               <Ionicons
@@ -344,7 +441,23 @@ const RecipeDetail = ({ route, navigation }) => {
 
       {/* Title + Category */}
       <View style={styles.header}>
-        <Text style={styles.title}>{recipe.title}</Text>
+        <View>
+          <Text style={styles.title}>{recipe.title}</Text>
+          <Text>{user?.role}</Text>
+
+          {/* Nếu là admin thì mới hiển thị các nút quản lý */}
+          {user?.role === "admin" && (
+            <View style={{ marginTop: 10 }}>
+              <Button title="Xóa sản phẩm" onPress={handleDeleteRecipe} color="red" />
+              <View style={{ height: 8 }} />
+              <Button
+                title={recipe.isHidden ? "Ẩn sản phẩm" : "Hiện sản phẩm"}
+                onPress={handleToggleVisible}
+              />
+            </View>
+          )}
+        </View>
+
         <Text style={styles.summary}>{recipe.summary || "Uncategorized"}</Text>
         <Text style={styles.category}>
           {recipe.tags?.map((item, index) =>
@@ -435,6 +548,7 @@ const RecipeDetail = ({ route, navigation }) => {
         newRatingComment={newRatingComment}
         setNewRatingComment={setNewRatingComment}
         handleAddRating={handleAddRating}
+        handleUpdateRating={handleUpdateRating}
         handleDeleteRating={handleDeleteRating}
       />
     </ScrollView>

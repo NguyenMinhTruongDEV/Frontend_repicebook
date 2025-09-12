@@ -26,10 +26,11 @@ const RatingModal = ({
   newRatingComment,
   setNewRatingComment,
   handleAddRating,        // thêm rating mới
+  handleUpdateRating,
   handleDeleteRating,     // xóa rating nếu cần
 }) => {
   const flatListRef = useRef(null);
-
+  const [isEditing, setIsEditing] = useState(false);
   // Giữ nguyên thứ tự API trả về
   const renderItem = ({ item }) => (
     <View style={styles.item}>
@@ -47,25 +48,39 @@ const RatingModal = ({
           ))}
       </View>
       {item.comment && <Text>{item.comment}</Text>}
-      {item.user === currentUserId && handleDeleteRating && (
-        <TouchableOpacity
-          onPress={() =>
-            Alert.alert(
-              "Xác nhận",
-              "Bạn có chắc muốn xóa rating này?",
-              [
-                { text: "Hủy", style: "cancel" },
-                {
-                  text: "Xóa",
-                  style: "destructive",
-                  onPress: () => handleDeleteRating(),
-                },
-              ]
-            )
-          }
-        >
-          <Text style={{ fontSize: 12, color: "#fd0000ff" }}>Xóa</Text>
-        </TouchableOpacity>
+      {item.user === currentUserId && (
+        <View style={{ flexDirection: "row", justifyContent: "space-between", width: 100 }}>
+          <TouchableOpacity
+            onPress={() =>
+              Alert.alert(
+                "Xác nhận",
+                "Bạn có chắc muốn xóa rating này?",
+                [
+                  { text: "Hủy", style: "cancel" },
+                  {
+                    text: "Xóa",
+                    style: "destructive",
+                    onPress: () => handleDeleteRating(),
+                  },
+                ]
+              )
+            }
+          >
+            <Text style={{ fontSize: 12, color: "#fd0000ff" }}>Xóa</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              setNewRating(item.stars);
+              setNewRatingComment(item.comment || "");
+              setIsEditing(true);
+              setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: true });
+              }, 200);
+            }}
+          >
+            <Text style={{ color: "blue" }}>Cập nhật</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
@@ -77,7 +92,7 @@ const RatingModal = ({
       <View style={{ flex: 1, backgroundColor: "#fff" }}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Ratings ({recipe?.ratings.length})</Text>
+          <Text style={styles.title}>Ratings ({recipe?.ratings?.length || 0})</Text>
         </View>
 
         {/* Rating list */}
@@ -93,41 +108,91 @@ const RatingModal = ({
           }}
         />
 
-        {/* Input + Send */}
+        
+        {/* Input + Send / Update */}
         {handleAddRating && (
           <View style={styles.inputContainer}>
-            <View style={{ flexDirection: "row", marginBottom: 8 }}>
-              {[1, 2, 3, 4, 5].map((i) => (
-                <TouchableOpacity key={i} onPress={() => setNewRating(i)}>
-                  <Ionicons
-                    name={i <= newRating ? "star" : "star-outline"}
-                    size={30}
-                    color="#FFD700"
-                    style={{ marginHorizontal: 2 }}
+            {isEditing ? (
+              <>
+                {/* Chọn sao */}
+                <View style={{ flexDirection: "row", marginBottom: 8 }}>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <TouchableOpacity key={i} onPress={() => setNewRating(i)}>
+                      <Ionicons
+                        name={i <= newRating ? "star" : "star-outline"}
+                        size={30}
+                        color="#FFD700"
+                        style={{ marginHorizontal: 2 }}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                {/* Nhập comment */}
+                <TextInput
+                  style={{
+                    borderWidth: 1,
+                    borderColor: "#ccc",
+                    borderRadius: 8,
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    marginBottom: 8,
+                  }}
+                  placeholder="Viết bình luận..."
+                  value={newRatingComment}
+                  onChangeText={setNewRatingComment}
+                />
+
+                {/* Nút cập nhật */}
+                <Button
+                  title="Cập nhật"
+                  onPress={async () => {
+                    await handleUpdateRating(); // gọi hàm cha
+                    setIsEditing(false);        // tắt edit mode
+                  }}
+                />
+              </>
+            ) : (
+              // Nếu user chưa rating thì mới hiện form thêm mới
+              !(recipe?.ratings || []).some(r => r.user === currentUserId) && (
+                <>
+                  {/* Chọn sao */}
+                  <View style={{ flexDirection: "row", marginBottom: 8 }}>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <TouchableOpacity key={i} onPress={() => setNewRating(i)}>
+                        <Ionicons
+                          name={i <= newRating ? "star" : "star-outline"}
+                          size={30}
+                          color="#FFD700"
+                          style={{ marginHorizontal: 2 }}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* Nhập comment */}
+                  <TextInput
+                    style={{
+                      borderWidth: 1,
+                      borderColor: "#ccc",
+                      borderRadius: 8,
+                      paddingHorizontal: 10,
+                      paddingVertical: 5,
+                      marginBottom: 8,
+                    }}
+                    placeholder="Viết bình luận..."
+                    value={newRatingComment}
+                    onChangeText={setNewRatingComment}
                   />
-                </TouchableOpacity>
-              ))}
-            </View>
 
-            {/* Nhập comment */}
-            <TextInput
-              style={{
-                borderWidth: 1,
-                borderColor: "#ccc",
-                borderRadius: 8,
-                paddingHorizontal: 10,
-                paddingVertical: 5,
-                marginBottom: 8,
-              }}
-              placeholder="Viết bình luận..."
-              value={newRatingComment}
-              onChangeText={setNewRatingComment}
-            />
-
-            <Button
-              title="Send"
-              onPress={handleAddRating}
-            />
+                  {/* Nút gửi mới */}
+                  <Button
+                    title="Send"
+                    onPress={handleAddRating}
+                  />
+                </>
+              )
+            )}
           </View>
         )}
 

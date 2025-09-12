@@ -18,6 +18,7 @@ import CreateRecipe from './src/pages/RecipeBook/CreateRecipe.js';
 import UpdateRecipe from './src/pages/RecipeBook/UpdateRecipe.js';
 import ForgotPasswordScreen from './src/pages/auth/AuthPassword/ForgotPasswordScreen.js';
 import ResetPasswordOTPScreen from './src/pages/auth/AuthPassword/ResetPasswordOTPScreen.js';
+import DetailUserIDScreen from './src/pages/Admin/DetailUserIDScreen.js';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -53,6 +54,8 @@ export default function App() {
           <Stack.Screen name="EditProfile" component={EditProfile} />
           <Stack.Screen name="EditProfilePassword" component={EditProfilePassword} />
           {/* End Profile */}
+          {/* Admin */}
+          <Stack.Screen name="DetailUserIDScreen" component={DetailUserIDScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

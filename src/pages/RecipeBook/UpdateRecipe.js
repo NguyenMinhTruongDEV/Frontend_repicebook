@@ -18,7 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { recipesApi } from "../../api/api.js"; // import API
 
 export default function UpdateRecipe({ route, navigation }) {
-  const { id, onUpdate } = route.params; // recipe cần update
+  const { id } = route.params; // recipe cần update
   const [recipe, setRecipe] = useState(null);
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
@@ -185,7 +185,7 @@ export default function UpdateRecipe({ route, navigation }) {
 
       Alert.alert("Thành công", `Recipe "${res.data?.title || recipe.title}" đã được cập nhật!`);
       // Sau khi update thành công:
-      if (onUpdate) onUpdate();
+      
       navigation.goBack();
     } catch (err) {
      
