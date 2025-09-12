@@ -1,97 +1,4 @@
-// import React, { useState } from 'react';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { authApi } from '../../api/api.js';
-// import { Button, SafeAreaView, StyleSheet, Text, TextInput } from 'react-native';
 
-
-// const LoginScreen = ({ navigation }) => {
-//   const [email, setEmail] = useState('');
-//   const [password, setPassword] = useState('');
-//   const [loading, setLoading] = useState(false);
-//   const [err, setErr] = useState('');
-
-//   const login = async () => {
-//     setLoading(true);
-//     setErr("");
-//     try {
-//       const res = await authApi.login({ identifier: email, password });
-//       // console.log("Full URL:", res.config.baseURL + res.config.url);
-//       const token = res.data?.data?.token || res.data?.token;
-
-//       console.log("Token:", token);
-//       console.log("Full URL:", res.config.url);
-
-//       if (!token) throw new Error("Token not found in response");
-
-//       await AsyncStorage.setItem("token", token);
-
-//       // Điều hướng sang Home
-//       navigation.navigate("MainTabs");
-
-//     } catch (e) {
-//       const backendErr = e.response?.data?.error;
-//       console.log("Error full:", backendErr.message);
-
-//       if (Array.isArray(backendErr)) {
-//         // Backend trả về mảng lỗi
-//         setErr(backendErr.join("\n"));
-//       } else {
-//         setErr(backendErr?.message || e.message || "Register failed");
-//       }
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <Text style={styles.title}>Login</Text>
-//       {err ? <Text style={styles.err}>{err}</Text> : null}
-//       <TextInput placeholder="Email"
-//         value={email}
-//         onChangeText={setEmail}
-//         style={styles.input}
-//         autoCapitalize='none' />
-//       <TextInput placeholder="Password"
-//         value={password}
-//         onChangeText={setPassword}
-//         secureTextEntry
-//         style={styles.input} />
-//       <Button title={loading ? 'Logging...' : 'Login'}
-//         onPress={login}
-//         disabled={loading} />
-//       <Button title="Register"
-//         onPress={() => navigation.navigate('Register')} />
-//       <Button title="Xác thực tài khoản"
-//         onPress={() => navigation.navigate('VerifyCode')} />
-//     </SafeAreaView>
-//   );
-// }
-
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     padding: 16
-//   },
-//   title: {
-//     fontSize: 20,
-//     fontWeight: '700',
-//     marginBottom: 12
-//   },
-//   input: {
-//     borderWidth: 1,
-//     borderColor: '#ccc',
-//     padding: 10,
-//     marginVertical: 6,
-//     borderRadius: 6
-//   },
-//   err: {
-//     color: 'red',
-//     marginBottom: 8
-//   }
-// });
 import React, { useState } from "react";
 import {
   View,
@@ -106,20 +13,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authApi } from '../../api/api.js';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../slice/userSlice.js'; // ← import từ file slice bạn tạo
-const LoginScreen = ({ navigation }) => {
+const LoginUserNameScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const [hidePassword, setHidePassword] = useState(true);
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
 
   const login = async () => {
-    if (email && password) {
+    if (identifier && password) {
       setLoading(true);
       setErr("");
       try {
-        const res = await authApi.login({ identifier: email, password });
+        const res = await authApi.login({ identifier: identifier, password });
         // console.log("Full URL:", res.config.baseURL + res.config.url);
         const userData = res.data.user;
         const token = res.data?.data?.token || res.data?.token;
@@ -160,11 +67,11 @@ const LoginScreen = ({ navigation }) => {
       {err ? <Text style={styles.err}>{err}</Text> : null}
       {/* Email */}
       <TextInput
-        value={email}
-        placeholder="Enter email"
+        value={identifier}
+        placeholder="Enter UserName"
         style={styles.input}
         keyboardType="email-address"
-        onChangeText={setEmail}
+        onChangeText={setIdentifier}
         autoCapitalize='none'
       />
 
@@ -197,7 +104,7 @@ const LoginScreen = ({ navigation }) => {
         {/* <Button style={styles.signInText} title={loading ? 'Logging...' : 'Login'}
           onPress={login}
           disabled={loading} /> */}
-        <Text style={styles.signInText}>{loading ? 'Logging...' : 'Login With Email'}</Text>
+        <Text style={styles.signInText}>{loading ? 'Logging...' : 'Login With UserName'}</Text>
       </TouchableOpacity>
 
       <Text style={styles.or}>─────── or continue with ───────</Text>
@@ -214,12 +121,12 @@ const LoginScreen = ({ navigation }) => {
           <Ionicons name="logo-facebook" size={24} color="#1877F2" />
         </TouchableOpacity>
       </View>
-      
-      {/* Login With UserName */}
+
+      {/* Login With Email */}
       <View style={styles.registerContainer}>
         <Text>Not a member? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('LoginUserName')} >
-          <Text style={styles.registerText}>Login UserName</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Login')} >
+          <Text style={styles.registerText}>Login Email</Text>
         </TouchableOpacity>
       </View>
       {/* Register */}
@@ -331,4 +238,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default LoginScreen;
+export default LoginUserNameScreen;

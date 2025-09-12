@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './src/pages/auth/LoginScreen.js';
+import LoginUserNameScreen from './src/pages/auth/LoginUserNameScreen.js';
 import RegisterScreen from './src/pages/auth/RegisterScreen.js';
 import RecipeDetail from './src/pages/RecipeBook/RecipeDetail.js';
 import Home from './src/pages/auth/Home.js';
@@ -15,6 +16,8 @@ import { store } from './src/store/store.js';
 import EditProfilePassword from './src/pages/Profile/EditProfilePassword.js';
 import CreateRecipe from './src/pages/RecipeBook/CreateRecipe.js';
 import UpdateRecipe from './src/pages/RecipeBook/UpdateRecipe.js';
+import ForgotPasswordScreen from './src/pages/auth/AuthPassword/ForgotPasswordScreen.js';
+import ResetPasswordOTPScreen from './src/pages/auth/AuthPassword/ResetPasswordOTPScreen.js';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -22,22 +25,34 @@ export default function App() {
     <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName='HomeScreen'>
+          {/* Auth */}
           <Stack.Screen
             name="HomeScreen"
             component={Home}
             options={{ headerShown: false }}
           />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="LoginUserName" component={LoginUserNameScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
           <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="OtpCode" component={OtpScreen} options={{ headerShown: false }} />
           <Stack.Screen name="SuccessOtp" component={SuccessOtp} options={{ headerShown: false }} />
+          {/* AuthPassword */}
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="ResetPasswordOtp" component={ResetPasswordOTPScreen} options={{ headerShown: false }} />
+          {/* End Auth */}
+
+          {/* Recipe */}
           <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen name="RecipeDetail" component={RecipeDetail} options={{ headerShown: false }} />
           <Stack.Screen name="CreateRecipe" component={CreateRecipe} options={{ headerShown: true }} />
           <Stack.Screen name="UpdateRecipe" component={UpdateRecipe} options={{ headerShown: true }} />
+          {/* End Recipe */}
+
+          {/* Profile */}
           <Stack.Screen name="EditProfile" component={EditProfile} />
           <Stack.Screen name="EditProfilePassword" component={EditProfilePassword} />
+          {/* End Profile */}
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

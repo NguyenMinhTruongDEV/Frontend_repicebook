@@ -7,7 +7,9 @@ export const authApi = {
   editProfile: (data) => axiosInstance.put("/users/update-info", data),
   editChangePassword : (data) => axiosInstance.put("/users/change-password", data),
   editAvatar: (data) => axiosInstance.put("/users/avatar", data),
-  verify: () => axiosInstance.post("/auth/verify/request")
+  verify: () => axiosInstance.post("/auth/verify/request"),
+  forgotPassword: (data) => axiosInstance.post("/auth/forgot", data),
+  resetPasswordOTP: (data) => axiosInstance.post("/auth/reset/code", data),
 };
 
 // ======================== RECIPES API ========================

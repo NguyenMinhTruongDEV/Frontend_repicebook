@@ -308,7 +308,7 @@ export default function HomeScreen({ navigation }) {
     <>
       <FlatList
         data={desserts}
-        keyExtractor={(item, index) => item._id || index}
+        keyExtractor={(item, index) => item.id || index}
         renderItem={renderItem}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderPagination}   // 👈 pagination nằm trong list
