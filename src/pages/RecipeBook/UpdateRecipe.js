@@ -14,7 +14,9 @@ import {
 } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
-import * as ImagePicker from 'expo-image-picker';
+
+import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 import { recipesApi } from "../../api/api.js"; // import API
 
 export default function UpdateRecipe({ route, navigation }) {
@@ -63,35 +65,61 @@ export default function UpdateRecipe({ route, navigation }) {
     }
   }, [id]);
 
-  // --- Image picker ---
+  // --- Image picker cho thumbnail ---
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Quyền bị từ chối',
-        'Bạn cần bật quyền truy cập ảnh trong Settings.',
-        [
-          { text: 'Hủy', style: 'cancel' },
-          { text: 'Mở Settings', onPress: () => Linking.openSettings() },
-        ]
-      );
-      return;
-    }
-
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,  // ✅ bật crop
-        aspect: [1, 1],       // tùy chọn tỉ lệ crop (width:height)
-        quality: 0.7,         // chất lượng ảnh
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setThumbnail(result.assets[0].uri); // ✅ lấy uri chính xác
-      }
-    } catch (err) {
-      console.error('Error picking image:', err);
-    }
+    Alert.alert("Chọn ảnh", "Camera, Thư viện hoặc File khác?", [
+      {
+        text: "Camera",
+        onPress: async () => {
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== "granted") {
+            Alert.alert("Quyền bị từ chối", "Bạn cần bật quyền camera trong Settings.");
+            return;
+          }
+          const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            setThumbnail(result.assets[0].uri);
+          }
+        },
+      },
+      {
+        text: "Thư viện",
+        onPress: async () => {
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== "granted") {
+            Alert.alert("Quyền bị từ chối", "Bạn cần bật quyền thư viện trong Settings.");
+            return;
+          }
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            setThumbnail(result.assets[0].uri);
+          }
+        },
+      },
+      {
+        text: "File khác",
+        onPress: async () => {
+          const result = await DocumentPicker.getDocumentAsync({
+            type: "image/*",
+            multiple: false,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            const uri = result.assets[0].uri;
+            setThumbnail(uri);
+          }
+        },
+      },
+      { text: "Hủy", style: "cancel" },
+    ]);
   };
 
   // --- Add/remove ingredient ---
@@ -172,23 +200,31 @@ export default function UpdateRecipe({ route, navigation }) {
         formData.append(`tags[${index}]`, t);
       });
 
-      // 3️⃣ Upload thumbnail nếu có thay đổi
+      // 3️⃣ Upload thumbnail (giống avatar)
       if (thumbnail && thumbnail !== recipe.thumbnail) {
         const filename = thumbnail.split("/").pop();
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : "image/jpeg";
-        formData.append("thumbnail", { uri: thumbnail, name: filename, type });
+
+        console.log("👉 Thumbnail upload:", { uri: thumbnail, name: filename, type });
+
+        formData.append("thumbnail", {
+          uri: thumbnail,
+          name: filename,
+          type,
+        });
       }
+
 
       // 4️⃣ Gọi API update (axiosInstance tự set headers)
       const res = await recipesApi.updateRecipes(id, formData);
 
       Alert.alert("Thành công", `Recipe "${res.data?.title || recipe.title}" đã được cập nhật!`);
       // Sau khi update thành công:
-      
+
       navigation.goBack();
     } catch (err) {
-     
+
       // console.error(err.response?.data || err.message);
       Alert.alert(
         "Lỗi",
@@ -201,7 +237,8 @@ export default function UpdateRecipe({ route, navigation }) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 150 }}>
       <Text style={styles.label}>Thumbnail:</Text>
-      {thumbnail && <Image source={{ uri: thumbnail }} style={{ width: "100%", height: 200, marginBottom: 8 }} />}
+      {thumbnail && <Image source={thumbnail ? { uri: thumbnail } : require('../../../assets/adaptive-icon.png')} style={{ width: "100%", height: 200, marginBottom: 8 }} />}
+      { }
       <Button title="Chọn ảnh" onPress={pickImage} />
 
       <Text style={styles.label}>Tiêu đề:</Text>

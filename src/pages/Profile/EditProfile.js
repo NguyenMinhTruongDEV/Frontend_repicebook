@@ -8,11 +8,13 @@ import {
   StyleSheet,
   Alert,
   Linking,
+  Platform
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 
 import { authApi } from "../../api/api.js"; // API call
 import { updateUser } from "../../slice/userSlice.js"; // Redux slice
@@ -38,37 +40,68 @@ export default function EditProfile() {
     setAvatar(user.avatar);
   }, [user]);
 
-  // Chọn avatar từ thư viện
+  // Chọn avatar (Camera, Thư viện, File khác)
   const pickAvatar = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Quyền bị từ chối",
-        "Bạn cần bật quyền truy cập ảnh trong Settings.",
-        [
-          { text: "Hủy", style: "cancel" },
-          { text: "Mở Settings", onPress: () => Linking.openSettings() },
-        ]
-      );
-      return;
-    }
-
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.7,
-      });
-
-      if (!result.canceled && result.assets?.length > 0) {
-        setAvatar(result.assets[0].uri);
-      }
-    } catch (err) {
-      console.error("Error picking image:", err);
-      Alert.alert("Lỗi", "Không thể chọn ảnh!");
-    }
+    Alert.alert("Chọn ảnh", "Camera, Thư viện hoặc File?", [
+      {
+        text: "Camera",
+        onPress: async () => {
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== "granted") {
+            Alert.alert("Quyền bị từ chối", "Cần bật quyền camera trong Settings.");
+            return;
+          }
+          const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            const uri = result.assets[0].uri;
+            setAvatar(uri);
+            handleUpdateAvatar(uri); // upload ngay
+          }
+        },
+      },
+      {
+        text: "Thư viện",
+        onPress: async () => {
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== "granted") {
+            Alert.alert("Quyền bị từ chối", "Cần bật quyền thư viện trong Settings.");
+            return;
+          }
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            const uri = result.assets[0].uri;
+            setAvatar(uri);
+            handleUpdateAvatar(uri); // upload ngay
+          }
+        },
+      },
+      {
+        text: "File khác",
+        onPress: async () => {
+          const result = await DocumentPicker.getDocumentAsync({
+            type: "image/*",
+            multiple: false,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            const uri = result.assets[0].uri;
+            setAvatar(uri);
+            handleUpdateAvatar(uri); // upload ngay
+          }
+        },
+      },
+      { text: "Hủy", style: "cancel" },
+    ]);
   };
+
 
   // Update profile thông tin cơ bản
   const handleSave = async () => {
@@ -92,7 +125,7 @@ export default function EditProfile() {
       Alert.alert("Thành công", "Cập nhật thông tin thành công!");
       navigation.goBack();
     } catch (err) {
-      console.error(err);
+      console.log(err);
       Alert.alert("Lỗi", "Không thể cập nhật thông tin!");
     }
   };

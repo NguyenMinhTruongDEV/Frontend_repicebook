@@ -4,6 +4,7 @@ import OTPTextInput from "react-native-otp-textinput";
 import { Ionicons } from "@expo/vector-icons";
 import { authApi } from "../../../api/api.js";
 export default function ResetPasswordOTPScreen({ route, navigation }) {
+  const { emailOtp } = route.params;
   const otpInput = useRef(null);
   const [otp, setOtp] = useState("");
   const [email, setEmail] = useState("");
@@ -11,14 +12,14 @@ export default function ResetPasswordOTPScreen({ route, navigation }) {
   const [hidePassword, setHidePassword] = useState(true);
 
   const handleConfirm = async () => {
-    if (!otp || !email || !newPassword) {
+    if (!otp || !newPassword) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     try {
       const payload = {
-        email: email,
+        email: emailOtp,
         code: otp,
         newPassword: newPassword,
       };
@@ -44,7 +45,17 @@ export default function ResetPasswordOTPScreen({ route, navigation }) {
       </Text>
 
       {/* Email */}
-      <View style={styles.inputContainer}>
+      <View style={{
+        flexDirection: "row",
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#ddd",
+        borderRadius: 12,
+        paddingHorizontal: 15,
+        marginBottom: 15,
+        backgroundColor: "#fff",
+        display: "none"
+      }}>
         <TextInput
           placeholder="Enter your email"
           style={styles.input}
@@ -53,6 +64,7 @@ export default function ResetPasswordOTPScreen({ route, navigation }) {
           onChangeText={setEmail}
           autoCapitalize="none"
           autoCorrect={false}
+
         />
         <Ionicons name="create-outline" size={20} color="#888" />
       </View>

@@ -87,8 +87,20 @@ import {
   Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
+import { authApi } from "../../api/api.js";
 export default function VerifyCodeScreen({ route, navigation }) {
+  const { email } = route.params;
+  const handleSendEmail = async () => {
+    try {
+      const result = await authApi.sentVerifyEmail();
+      console.log("Verification email sent:", result);
+      alert(result.data.message);
+      navigation.navigate('OtpCode', { email })
+    } catch (err) {
+      console.log(err.response?.data);
+      alert(err.response?.data?.message || "Gửi email thất bại, thử lại sau.");
+    }
+  };
   return (
     <View style={styles.container}>
       {/* Hình minh họa */}
@@ -98,7 +110,7 @@ export default function VerifyCodeScreen({ route, navigation }) {
         }}
         style={styles.image}
       />
-      
+
       {/* Title */}
       <Text style={styles.title}>OTP Verification</Text>
       <Text style={styles.subtitle}>
@@ -116,14 +128,16 @@ export default function VerifyCodeScreen({ route, navigation }) {
       </View>
 
       {/* Phone */}
-      <TextInput
-        placeholder="Phone number"
-        style={styles.inputBox}
-        keyboardType="phone-pad"
-      />
+      
+        <TextInput
+          placeholder="Phone number"
+          style={styles.inputBox}
+          keyboardType="phone-pad"
+        />
+      
 
       {/* Button */}
-      <TouchableOpacity onPress={() => navigation.navigate('OtpCode')} style={styles.button}>
+      <TouchableOpacity onPress={handleSendEmail} style={styles.button}>
         <Text style={styles.buttonText}>Continue</Text>
       </TouchableOpacity>
     </View>
@@ -162,6 +176,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginBottom: 15,
     backgroundColor: "#fff",
+    display: "none"
   },
   input: {
     flex: 1,
@@ -175,6 +190,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 25,
     backgroundColor: "#fff",
+    display: "none"
   },
   button: {
     backgroundColor: "#FF6B00",

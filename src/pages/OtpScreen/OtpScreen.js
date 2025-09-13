@@ -1,15 +1,23 @@
 import React, { useRef, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import OTPTextInput from "react-native-otp-textinput";
-
+import { authApi } from "../../api/api.js";
 export default function OtpScreen({ route, navigation }) {
   const otpInput = useRef(null);
   const [otp, setOtp] = useState("");
 
-  const handleConfirm = () => {
-    console.log("OTP Entered: ", otp);
-    // Xử lý xác thực OTP ở đây (API call, điều hướng, ...)
-    navigation.navigate('SuccessOtp')
+  const handleVerifyOtp = async () => {
+    if (!otp) return alert("Vui lòng nhập OTP");
+
+    try {
+      const result = await authApi.verifyEmailOtp({ code: otp });
+      console.log("OTP verified:", result);
+      alert(result.message || "Xác thực thành công!");
+      navigation.navigate("SuccessOtp");
+    } catch (err) {
+      console.log("OTP verification error:", err.response?.data?.error?.message || err.response?.data);
+      alert(err.response?.data?.error?.message || "Xác thực thất bại, thử lại sau.");
+    }
   };
 
   return (
@@ -29,7 +37,7 @@ export default function OtpScreen({ route, navigation }) {
         textInputStyle={styles.otpInput}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleConfirm}>
+      <TouchableOpacity style={styles.button} onPress={handleVerifyOtp}>
         <Text style={styles.buttonText}>Confirm</Text>
       </TouchableOpacity>
     </View>

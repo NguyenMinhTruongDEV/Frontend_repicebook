@@ -13,7 +13,7 @@ import { Picker } from "@react-native-picker/picker"; // npm install @react-nati
 import { recipesApi } from "../../api/api.js";
 
 const DetailUserIDScreen = ({ route, navigation }) => {
-  const { userId } = route.params;
+  const { userId, role } = route.params;
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState("");
@@ -86,22 +86,27 @@ const DetailUserIDScreen = ({ route, navigation }) => {
       <Text style={styles.status}>Status: {user.status}</Text>
 
       {/* Picker Role */}
-      <View style={{ width: "80%", marginVertical: 10 }}>
-        <Text style={{ marginBottom: 5 }}>Role:</Text>
-        <Picker
-          selectedValue={selectedRole}
-          onValueChange={(itemValue) => setSelectedRole(itemValue)}
-          style={{ backgroundColor: "#fff", borderRadius: 5 }}
-        >
-          <Picker.Item label="User" value="user" />
-          <Picker.Item label="Admin" value="admin" />
-          <Picker.Item label="Staff" value="staff" />
-        </Picker>
-        <View style={{ marginTop: 10 }}>
-          <Button title="Cập nhật Role" onPress={changeRole} />
+      {/* Picker Role */}
+      {role === "admin" ? (
+        <Text style={styles.status}>Status: {role}</Text>
+      ) : (
+        <View style={{ width: "80%", marginVertical: 10 }}>
+          <Text style={{ marginBottom: 5 }}>Role:</Text>
+          <Picker
+            selectedValue={selectedRole}
+            onValueChange={(itemValue) => setSelectedRole(itemValue)}
+            style={{ backgroundColor: "#fff", borderRadius: 5 }}
+          >
+            <Picker.Item label="User" value="user" />
+            <Picker.Item label="Admin" value="admin" />
+            <Picker.Item label="Staff" value="staff" />
+          </Picker>
+          <View style={{ marginTop: 10 }}>
+            <Button title="Cập nhật Role" onPress={changeRole} />
+          </View>
         </View>
-      </View>
-
+      )}
+      
       {/* Button đổi trạng thái */}
       <View style={{ marginTop: 20, width: "80%" }}>
         <Button

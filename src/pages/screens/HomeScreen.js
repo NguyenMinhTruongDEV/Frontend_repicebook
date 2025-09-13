@@ -1,15 +1,32 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { ScrollView, TouchableOpacity, Text, Image, View, ActivityIndicator, StyleSheet, Dimensions, FlatList, SafeAreaView } from 'react-native';
+import { ScrollView, TouchableOpacity, Text, Image, View, ActivityIndicator, StyleSheet, Dimensions, FlatList, SafeAreaView, Animated } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { recipesApi } from '../../api/api.js';
 import Pagination from '../../components/Pagination/Pagination.js';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import Carousel from "react-native-reanimated-carousel";
+import { APP_COLOR } from '../../utils/constant.js';
 const { width } = Dimensions.get("window");
+const numColumns = 2;
+const cardMargin = 16;
+const cardWidth = (width - cardMargin * (numColumns + 1)) / numColumns;
 
 
+const cardMarginDesserts = 12;
+const cardWidthDesserts = (width - cardMargin * (numColumns * 2)) / numColumns;
+
+
+const BANNER_WIDTH = width * 0.9; // rộng 90% màn hình
+const BANNER_HEIGHT = 250;
+const staticBanner = {
+  id: '1',
+  title: '20% Off Premium',
+  subtitle: 'Limited time offer',
+  description: 'Get access to exclusive recipes',
+  image: require('../../../assets/beef_pie.jpg'),
+};
 const categories = [
   { id: "1", name: "Breakfast", icon: require('../../../assets/beef_pie.jpg') },
   { id: "2", name: "Beef", icon: require('../../../assets/beef_pie.jpg') },
@@ -18,47 +35,6 @@ const categories = [
   { id: "5", name: "All", icon: require("../../../assets/beef_pie.jpg") },
 ];
 
-const topPicks = [
-  {
-    id: "1",
-    name: "15-minute chicken & halloumi",
-    image: require("../../../assets/beef_pie.jpg"),
-    time: "15min",
-    difficulty: "Easy",
-    rating: 4.7,
-    chef: "Chef Ogba",
-  },
-  {
-    id: "2",
-    name: "Ayam Percik",
-    image: require("../../../assets/beef_pie.jpg"),
-    time: "15min",
-    difficulty: "Easy",
-    rating: 4.0,
-    chef: "Chef Ogba",
-  },
-];
-
-// const desserts = [
-//   {
-//     id: '1',
-//     name: 'Chocolate Cake',
-//     difficulty: 'Medium',
-//     time: '45 mins',
-//     chef: 'John Doe',
-//     rating: 4.8,
-//     image: require("../../../assets/beef_pie.jpg"),
-//   },
-//   {
-//     id: '2',
-//     name: 'Strawberry Tart',
-//     difficulty: 'Easy',
-//     time: '30 mins',
-//     chef: 'Jane Smith',
-//     rating: 4.5,
-//     image: require("../../../assets/beef_pie.jpg"),
-//   },
-// ];
 
 const bannerData = [
   {
@@ -94,6 +70,14 @@ export default function HomeScreen({ navigation }) {
   // desserts
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  const showButton = scrollY.interpolate({
+    inputRange: [0, 50],
+    outputRange: [0, 1], // 0: ẩn, 1: hiện
+    extrapolate: "clamp",
+  });
+
 
   const fetchPage = async (pageNum = 1) => {
     try {
@@ -117,8 +101,8 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
- 
- useFocusEffect(
+
+  useFocusEffect(
     useCallback(() => {
       fetchPage(1); // tự động lấy lại khi màn hình focus
     }, [])
@@ -194,7 +178,9 @@ export default function HomeScreen({ navigation }) {
         </View>
         <FlatList
           data={categories}
-          keyExtractor={item => item.id}
+          keyExtractor={(item, index) =>
+            (item && item.id != null ? item.id.toString() : index.toString())
+          }
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16 }}
@@ -208,11 +194,7 @@ export default function HomeScreen({ navigation }) {
           )}
         />
       </View>
-      <View>
-        <Text onPress={() => navigation.navigate("CreateRecipe")} >
-          Tạo công thức mới
-        </Text>
-      </View>
+
       {/* Top Picks */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
@@ -224,7 +206,9 @@ export default function HomeScreen({ navigation }) {
         <FlatList
           data={topPicks}
           horizontal
-          keyExtractor={item => item.id}
+          keyExtractor={(item, index) =>
+            (item && item.id != null ? item.id.toString() : index.toString())
+          }
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16 }}
           renderItem={({ item }) => (
@@ -245,7 +229,7 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.cardMetaText}>{item.difficulty}</Text>
                   </View>
                 </View>
-                <Text style={styles.cardChef}>By: {item.createdBy}</Text>
+                {/* <Text style={styles.cardChef}>By: {item.createdBy}</Text> */}
                 <View style={styles.cardRatingContainer}>
                   <Ionicons name="star" size={14} color="#FFD700" />
                   <Text style={styles.cardRating}>{getAverageRating(item.ratings)}</Text>
@@ -255,71 +239,112 @@ export default function HomeScreen({ navigation }) {
           )}
         />
       </View>
-
+      {/* Banner */}
+      <View style={styles.bannerCard}>
+        <Image source={staticBanner.image} style={styles.bannerImage} />
+        <View style={styles.bannerText}>
+          <Text style={styles.title}>{staticBanner.title}</Text>
+          <Text style={styles.subtitle}>{staticBanner.subtitle}</Text>
+          <Text style={styles.description}>{staticBanner.description}</Text>
+        </View>
+      </View>
+      {/* end banner */}
       {/* Dessert Section Title */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>More Dessert</Text>
+      <View style={styles.sectionDessert}>
+        <View style={styles.sectionHeaderDessert}>
+          <Text style={styles.sectionTitleDessert}>More Dessert</Text>
           <TouchableOpacity>
-            <Text style={styles.seeAllText}>See All</Text>
+            <Text style={styles.seeAllTextDessert}>See All</Text>
           </TouchableOpacity>
         </View>
       </View>
+
     </SafeAreaView>
   );
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.dessertItem} activeOpacity={0.9}>
-      <Image source={{ uri: item.thumbnail }} style={styles.dessertImage} />
-      <View style={styles.dessertInfo}>
-        <Text style={styles.dessertName}>{item.title}</Text>
-        <View style={styles.dessertMeta}>
-          <View style={[styles.difficultyBadge,
-          item.difficulty === 'Easy' ? styles.easyBadge : styles.mediumBadge]}>
-            <Text style={[styles.difficultyText,
-            item.difficulty === 'Easy' ? styles.easyText : styles.mediumText]}>
-              {item.difficulty}
-            </Text>
-          </View>
-          <Text style={styles.timeText}>{item.time.total}</Text>
-        </View>
-        <Text style={styles.chef}>By: {item.createdBy}</Text>
-      </View>
-      <View style={styles.dessertActions}>
-        <TouchableOpacity style={styles.heartIconSmall}>
-          <Ionicons name="heart-outline" size={20} color="#FF6B00" />
-          <Text style={styles.rating}>{item?.likes?.length || 0}</Text>
-        </TouchableOpacity>
-        <View style={styles.ratingContainer}>
-          <Ionicons name="star" size={14} color="#FFD700" />
-          <Text style={styles.rating}>{getAverageRating(item.ratings)}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  )
+    // <View>
+    //   <TouchableOpacity style={styles.cardDesserts} activeOpacity={0.9}>
+    //     <Image source={{ uri: item.thumbnail }} style={styles.cardImage} />
+    //     <TouchableOpacity style={styles.heartIcon}>
+    //       <Ionicons name="heart-outline" size={20} color="#FF6B00" />
+    //     </TouchableOpacity>
+    //     <View style={styles.cardContent}>
+    //       <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+    //       <View style={styles.cardMeta}>
+    //         <View style={styles.cardMetaItem}>
+    //           <Ionicons name="time-outline" size={12} color="#888" />
+    //           <Text style={styles.cardMetaText}>{item.time.total}</Text>
+    //         </View>
+    //         <View style={styles.cardMetaItem}>
+    //           <Ionicons name="speedometer-outline" size={12} color="#888" />
+    //           <Text style={styles.cardMetaText}>{item.difficulty}</Text>
+    //         </View>
+    //       </View>
+    //       <Text style={styles.cardChef}>By: {item.createdBy}</Text>
+    //       <View style={styles.cardRatingContainer}>
+    //         <Ionicons name="star" size={14} color="#FFD700" />
+    //         <Text style={styles.cardRating}>{getAverageRating(item.ratings)}</Text>
+    //       </View>
+    //     </View>
+    //   </TouchableOpacity>
+    // </View>
+    <View style={styles.cardDesserts}>
+      <Image source={{ uri: item.thumbnail }} style={styles.imageDesserts} resizeMode="cover"/>
+      <Text style={styles.titleDesserts} numberOfLines={2}>
+        {item.title} {item.icon}
+      </Text>
+    </View>
+  );
+
   const renderPagination = () => (
+    <View>
       <Pagination
         page={page}
         totalPages={totalPages}
         onPageChange={fetchPage}
       />
+    </View>
   );
 
   return (
-    <>
-      <FlatList
+    <View style={{ flex: 1 }}>
+      <Animated.FlatList
+        key={2} // 👉 bắt buộc đổi key nếu numColumns thay đổi
         data={desserts}
-        keyExtractor={(item, index) => item.id || index}
+        keyExtractor={(item, index) =>
+          (item && item._id != null ? item._id.toString() : index.toString())
+        }
         renderItem={renderItem}
+        numColumns={2} // 👉 chia 2 cột
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderPagination}   // 👈 pagination nằm trong list
+        columnWrapperStyle={{ justifyContent: 'space-evenly' }} // căn giữa 2 item
+        contentContainerStyle={{ paddingBottom: 24 }} // padding tổng thể + dưới
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
       />
-    </>
+      {/* Nút + luôn nổi */}
+      <Animated.View
+        style={[
+          styles.floatingButton,
+          { opacity: showButton } // ẩn/hiện mượt
+        ]}
+      >
+        <TouchableOpacity onPress={() => navigation.navigate("CreateRecipe")}>
+          <Text style={{ fontSize: 30, color: "white" }}>+</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  containerHeader: {
+    
+  },
   center: {
     flex: 1,
     justifyContent: 'center',
@@ -455,11 +480,13 @@ const styles = StyleSheet.create({
     color: "#666",
     fontWeight: '500',
   },
-
-  // Card Styles
-  card: {
-    width: 220,
-    marginRight: 16,
+  // cardDesserts
+  cardDesserts: {
+    width: cardWidthDesserts,
+    // marginRight: cardMargin,
+    // marginLeft: cardMargin,
+    height: cardWidthDesserts * 1.2,
+    marginBottom: 16,
     borderRadius: 16,
     overflow: "hidden",
     backgroundColor: "#fff",
@@ -468,10 +495,39 @@ const styles = StyleSheet.create({
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
+  imageDesserts: {
+    width: '100%',
+    height: '100%',
+  },
+  titleDesserts: {
+    padding: 8,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  // end cardDesserts
+  // Card Styles
+  card: {
+    width: cardWidth,
+    marginRight: cardMargin,
+    marginBottom: 2,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  
   cardImage: {
     width: "100%",
     height: 140
@@ -531,94 +587,87 @@ const styles = StyleSheet.create({
     color: "#333",
     marginLeft: 4,
   },
+  // Section Styles
+  sectionDessert: {
+    marginBottom: 10,
+  },
+  sectionHeaderDessert: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+
+  },
+  sectionTitleDessert: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#333"
+  },
+  seeAllTextDessert: {
+    fontSize: 14,
+    color: "#FF6B00",
+    fontWeight: '600',
+  },
 
   // Dessert Styles
   dessertItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
+    width: 160,
+    margin: 8,
+    borderRadius: 12,
     backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginBottom: 12,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    padding: 8,
+    shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 5,
     elevation: 3,
   },
+
   dessertImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12
+    width: '100%',
+    height: 120,
+    borderRadius: 12,
   },
-  dessertInfo: {
-    flex: 1,
-    marginLeft: 16
-  },
+
   dessertName: {
+    marginTop: 8,
+    fontSize: 14,
     fontWeight: '600',
-    fontSize: 16,
-    color: "#333",
-    marginBottom: 8,
   },
+
   dessertMeta: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginTop: 4,
   },
+
   difficultyBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 8,
-    marginRight: 12,
+    borderRadius: 4,
   },
-  easyBadge: {
-    backgroundColor: '#E8F5E8',
-  },
-  mediumBadge: {
-    backgroundColor: '#FFF3E0',
-  },
-  difficultyText: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  easyText: {
-    color: '#2E7D2E',
-  },
-  mediumText: {
-    color: '#F57C00',
-  },
-  timeText: {
-    color: '#888',
-    fontSize: 12,
-  },
-  chef: {
-    color: '#666',
-    fontSize: 12,
-  },
+
+  easyBadge: { backgroundColor: '#E0F7FA' },
+  mediumBadge: { backgroundColor: '#FFF3E0' },
+
+  difficultyText: { fontSize: 12 },
+  easyText: { color: '#00ACC1' },
+  mediumText: { color: '#FF6B00' },
+
+  timeText: { fontSize: 12, color: '#888' },
+
+  chef: { marginTop: 4, fontSize: 12, color: '#666' },
+
   dessertActions: {
-    alignItems: 'center',
-  },
-  heartIconSmall: {
-    padding: 8,
-    marginBottom: 8,
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 6,
   },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rating: {
-    color: '#333',
-    fontWeight: '600',
-    fontSize: 14,
-    marginLeft: 4,
-  },
+
+  heartIconSmall: { flexDirection: 'row', alignItems: 'center' },
+  ratingContainer: { flexDirection: 'row', alignItems: 'center' },
+  rating: { marginLeft: 4, fontSize: 12, color: '#333' },
   // Pagination Styles
   pageButton: {
     paddingHorizontal: 12,
@@ -647,4 +696,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     justifyContent: "center",
   },
+  floatingButton: {
+    position: "absolute",
+    bottom: 20,
+    // left: width / 2 - 30,
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    backgroundColor: APP_COLOR.ORANGE,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  // Banner Card Styles
+  bannerCard: {
+    width: BANNER_WIDTH,
+    height: BANNER_HEIGHT,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+    alignSelf: 'center', // căn giữa màn hình
+    marginVertical: 16,
+  },
+  bannerImage: {
+    width: '100%',
+    height: '60%',
+  },
+  bannerText: {
+    padding: 12,
+  },
+  title: { fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
+  subtitle: { fontSize: 14, color: '#555', marginBottom: 4 },
+  description: { fontSize: 12, color: '#777' },
+
+  // End Banner Card Styles
 });

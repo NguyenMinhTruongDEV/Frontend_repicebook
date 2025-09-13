@@ -119,8 +119,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { authApi } from "../../api/api.js";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function RegisterScreen({ navigation }) {
   const [hidePassword, setHidePassword] = useState(true);
+  const [hideConfirmPassword, setHideConfirmPassword] = useState(true);
   const [username, setUsername] = useState("");
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
@@ -146,8 +148,23 @@ export default function RegisterScreen({ navigation }) {
       });
       console.log("Register success:", res.data);
       // Sau khi đăng ký thành công → chuyển về Login
-      alert("Đăng Ký Thành Công");
+      
+      const token = res.data?.data?.token || res.data?.token;
 
+      console.log("Token:", token);
+      console.log("Full URL:", res.config.url);
+
+      if (!token) throw new Error("Token not found in response");
+
+      await AsyncStorage.setItem("token", token);
+      alert("Đăng Ký Thành Công");
+      navigation.navigate("VerifyCode", { email: email});
+      setUsername("");
+      setFullname("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      
     } catch (e) {
       const backendErr = e.response?.data?.error;
       console.log("Error full:", backendErr.message);
@@ -170,18 +187,6 @@ export default function RegisterScreen({ navigation }) {
         Join Us to Unlock a World of{"\n"}Shopping Delights!
       </Text>
       {err ? <Text style={styles.err}>{err}</Text> : null}
-
-      {/* 
-
-
-
-      //       <TextInput
-      //         placeholder="Confirm Password"
-      //         value={confirmPassword}
-      //         onChangeText={setConfirmPassword}
-      //         style={styles.input}
-      //         secureTextEntry
-      //       /> */}
 
       {/* Name */}
       <TextInput
@@ -234,17 +239,17 @@ export default function RegisterScreen({ navigation }) {
 
       <View style={styles.passwordContainer}>
         <TextInput
-          secureTextEntry={hidePassword}
+          secureTextEntry={hideConfirmPassword}
           style={styles.passwordInput}
           placeholder="Confirm Password"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
         />
         <TouchableOpacity
-          onPress={() => setHidePassword(!hidePassword)}
+          onPress={() => setHideConfirmPassword(!hideConfirmPassword)}
         >
           <Ionicons
-            name={hidePassword ? "eye-off" : "eye"}
+            name={hideConfirmPassword ? "eye-off" : "eye"}
             size={20}
             color="#666"
           />

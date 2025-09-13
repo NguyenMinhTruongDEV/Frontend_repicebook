@@ -5,6 +5,7 @@ import { recipesApi } from "../../api/api.js"
 import Pagination from '../../components/Pagination/Pagination.js';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import { useDebounce } from "../../hook/useDebounce.js"
 const categories = [
   { id: '1', name: 'Beef', image: require('../../../assets/beef_pie.jpg') },
   { id: '2', name: 'Chicken', image: require('../../../assets/beef_pie.jpg') },
@@ -62,11 +63,21 @@ const SearchScreen = ({ navigation }) => {
   //   fetchPage(1);
   // }, [search]);
 
+  // 1. Khi màn hình focus, chỉ fetch page 1
   useFocusEffect(
     useCallback(() => {
-      fetchPage(1); // tự động lấy lại khi màn hình focus
-    }, [search])
+      fetchPage(1);
+    }, []) // không phụ thuộc search
   );
+
+
+  // 2. Khi search thay đổi, dùng useEffect + debounce
+  const debouncedSearch = useDebounce(search, 300);
+
+  useEffect(() => {
+    fetchPage(1);
+  }, [debouncedSearch]);
+  
   const renderPagination = () => (
     <Pagination
       page={page}

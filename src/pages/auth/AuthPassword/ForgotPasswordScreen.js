@@ -37,7 +37,7 @@ export default function ForgotPasswordScreen({ route, navigation }) {
 
       if (res.data) {
         Alert.alert("Success", res.data.message);
-        navigation.navigate('ResetPasswordOtp'); // truyền email nếu cần
+        navigation.navigate('ResetPasswordOtp', { emailOtp: email}); // truyền email nếu cần
       } 
     } catch (error) {
       console.error("Error during forgot password:", error);

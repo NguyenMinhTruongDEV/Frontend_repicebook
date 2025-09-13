@@ -15,10 +15,12 @@ import { recipesApi } from "../../api/api.js";
 import Icon from "react-native-vector-icons/MaterialIcons"; // hoặc FontAwesome
 
 
-const AllUserScreen = ({route, navigation}) => {
+import { useSelector } from "react-redux";
+const AllUserScreen = ({ route, navigation }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const user = useSelector(state => state.user.data);
+  
   const fetchUsers = async () => {
     try {
       const res = await recipesApi.getAllUser(); // thay API đúng của bạn
@@ -40,7 +42,7 @@ const AllUserScreen = ({route, navigation}) => {
     <View style={styles.userCard}>
       <TouchableOpacity
         style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
-        onPress={() => navigation.navigate("DetailUserIDScreen", { userId: item._id })}
+        onPress={() => navigation.navigate("DetailUserIDScreen", { userId: item._id, role: item?.role })}
       >
         <Image source={{ uri: item.avatar }} style={styles.avatar} />
         <View style={styles.userInfo}>
@@ -48,39 +50,43 @@ const AllUserScreen = ({route, navigation}) => {
           <Text style={styles.email}>{item.email}</Text>
           <Text style={styles.role}>Role: {item.role}</Text>
           <Text style={styles.status}>Status: {item.status}</Text>
+          
         </View>
       </TouchableOpacity>
-
-      {/* Icon xóa */}
-      <TouchableOpacity
-        onPress={() =>
-          Alert.alert(
-            "Xác nhận",
-            `Bạn có chắc chắn muốn xóa ${item.fullname}?`,
-            [
-              { text: "Hủy", style: "cancel" },
-              {
-                text: "Xóa",
-                style: "destructive",
-                onPress: async () => {
-                  try {
-                    await recipesApi.deleteUserRole(item._id);
-                    Alert.alert("Thành công", "Người dùng đã được xóa");
-                    // refresh lại danh sách nếu cần
-                    // Cập nhật state local để UI ngay lập tức
-                    setUsers((prev) => prev.filter((u) => u._id !== item._id));
-                  } catch (err) {
-                    console.error("Delete user error:", err);
-                    Alert.alert("Lỗi", "Không thể xóa người dùng");
-                  }
-                },
-              },
-            ]
-          )
-        }
-      >
-        <Icon name="delete" size={24} color="red" />
-      </TouchableOpacity>
+      {user?.role === 'admin' && item?._id !== user?.id && (
+        <>
+          {/* Icon xóa */}
+          <TouchableOpacity
+            onPress={() =>
+              Alert.alert(
+                "Xác nhận",
+                `Bạn có chắc chắn muốn xóa ${item.fullname}?`,
+                [
+                  { text: "Hủy", style: "cancel" },
+                  {
+                    text: "Xóa",
+                    style: "destructive",
+                    onPress: async () => {
+                      try {
+                        await recipesApi.deleteUserRole(item._id);
+                        Alert.alert("Thành công", "Người dùng đã được xóa");
+                        // refresh lại danh sách nếu cần
+                        // Cập nhật state local để UI ngay lập tức
+                        setUsers((prev) => prev.filter((u) => u._id !== item._id));
+                      } catch (err) {
+                        console.error("Delete user error:", err);
+                        Alert.alert("Lỗi", "Không thể xóa người dùng");
+                      }
+                    },
+                  },
+                ]
+              )
+            }
+          >
+            <Icon name="delete" size={24} color="red" />
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 

@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import ResultModal from '../../components/model/ResultModal.js'; // import component modal
 
+import CookingCarouselModal from '../Cook/CookingCarouselModal.js';
 import {
   View,
   Text,
@@ -23,6 +25,7 @@ import CommentModal from "../../components/model/CommentModal";
 import RatingModal from "../../components/model/RatingModal";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import CookingModal from "../Cook/StepComplete.js";
 const RecipeDetail = ({ route, navigation }) => {
   const { id } = route.params;
   // 🔹 Lấy user từ Redux
@@ -31,8 +34,8 @@ const RecipeDetail = ({ route, navigation }) => {
 
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
- 
-  
+
+
   const [ratingVisible, setRatingVisible] = useState(false); // quản lý hiển thị modal
   const [ratings, setRatings] = useState([]);
   const [newRating, setNewRating] = useState(0); // số sao mới chọn
@@ -42,10 +45,31 @@ const RecipeDetail = ({ route, navigation }) => {
   const [newComment, setNewComment] = useState("");
 
   // End coment
-  
+
   const [liked, setLiked] = useState(false);
   const [rated, setRated] = useState(false);
   const [commented, setCommented] = useState(false);
+
+  // Cooking
+ 
+  const [ingredients, setIngredients] = useState(
+    recipe?.ingredients?.map(item => ({ ...item, amount: Number(item.amount) || 0 })) || []
+  );
+  useEffect(() => {
+    if (recipe?.ingredients) {
+      console.log("Length recipe",recipe?.ingredients)
+      setIngredients(
+        recipe.ingredients.map(item => ({
+          ...item,
+          amount: Number(item.amount) || 0
+        }))
+      );
+    }
+  }, [recipe]);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  //  End Cooking
+
 
   const fetchRecipeById = async (recipeId) => {
     try {
@@ -243,7 +267,7 @@ const RecipeDetail = ({ route, navigation }) => {
       console.error("Xóa rating thất bại:", err.response?.data || err.message);
     }
   };
-  
+
   // ✅ Update rating
   const handleUpdateRating = async () => {
     const content = newRatingComment.trim();
@@ -273,18 +297,18 @@ const RecipeDetail = ({ route, navigation }) => {
 
   // End Ratings
   // Hide Recipe
-  
+
   const [isHidden, setIsHidden] = useState(false);
   const handleToggleVisible = async () => {
     try {
       if (isHidden) {
         await recipesApi.unHideRecipe(recipe._id);
         Alert.alert("Thành công", `${recipe._id} Sản phẩm đã được hiển thị lại`);
-        
+
       } else {
         await recipesApi.hideRecipe(recipe._id);
         Alert.alert("Thành công", `${recipe._id} Sản phẩm đã được ẩn`);
-        
+
       }
 
       // Gọi lại API để sync
@@ -335,230 +359,245 @@ const RecipeDetail = ({ route, navigation }) => {
     return <Text style={{ margin: 20 }}>Không tìm thấy món ăn</Text>;
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Thumbnail + Overlay buttons */}
-      <View>
-        <Image source={{ uri: recipe.thumbnail }} style={styles.thumbnail} />
-
-        {/* Overlay buttons */}
-        <View style={styles.topButtons}>
-          {/* Back button */}
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#000" style={styles.iconBtn} />
-          </TouchableOpacity>
-
-          {/* Right buttons */}
-          <View style={{ flexDirection: "row" }}>
-            <TouchableOpacity
-              onPress={handleLike}
-              style={{ flexDirection: "row", alignItems: "center", position: "relative" }}
-            >
-              <Ionicons
-                name={liked ? "heart" : "heart-outline"}
-                size={24}
-                color={liked ? "red" : "gray"} // đỏ nếu đã like, xám nếu chưa
-                style={styles.iconBtn}
-              />
-              <Text
-                style={{
-                  marginLeft: 5,
-                  fontSize: 22,
-                  color: "red",       // chữ màu đỏ
-                  fontWeight: "900",  // in đậm cho nổi bật (tuỳ chọn)
-                  position: "absolute",
-                  top: -10,
-                  right: 0
-                }}
-              >
-                {Array.isArray(recipe?.likes) ? recipe?.likes?.length : 0}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => setCommentVisible(true)}>
-              <Ionicons
-                name={commented ? "chatbubble" : "chatbubble-outline"}
-                size={24}
-                color={commented ? "#007bff" : "gray"} // xanh khi đã comment
-                style={styles.iconBtn}
-              />
-              <Text
-                style={{
-                  marginLeft: 5,
-                  fontSize: 22,
-                  color: "red",       // chữ màu đỏ
-                  fontWeight: "900",  // in đậm cho nổi bật (tuỳ chọn)
-                
-                  position: "absolute",
-                  top: -10,
-                  right: 0
-                }}
-              >
-                {Array.isArray(recipe.comments) ? recipe.comments.length : 0}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setRatingVisible(true)}
-              style={{ flexDirection: "row", alignItems: "center", position: "relative" }}
-            >
-              <Ionicons
-                name={rated ? "star" : "star-outline"}
-                size={24}
-                color={rated ? "#ffbf00ff" : "gray"} // đỏ nếu đã like, xám nếu chưa
-                style={styles.iconBtn}
-              />
-              <Text
-                style={{
-                  marginLeft: 5,
-                  fontSize: 22,
-                  color: "red",       // chữ màu đỏ
-                  fontWeight: "900",  // in đậm cho nổi bật (tuỳ chọn)
-                  position: "absolute",
-                  top: -10,
-                  right: 0
-                }}
-              >
-                {Array.isArray(recipe.ratings) ? recipe.ratings.length : 0}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() =>
-              navigation.navigate("UpdateRecipe", {
-                id: recipe._id,
-
-              })
-            }>
-              <Ionicons
-                name="ellipsis-vertical"
-                size={24}
-                color="#000"
-                style={styles.iconBtn}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      {/* Title + Category */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.container} contentContainerStyle={{ paddingBottom: 160 }}>
+      <ScrollView>
+        {/* Thumbnail + Overlay buttons */}
         <View>
-          <Text style={styles.title}>{recipe.title}</Text>
-          <Text>{user?.role}</Text>
+          <Image source={{ uri: recipe.thumbnail }} style={styles.thumbnail} />
 
-          {/* Nếu là admin thì mới hiển thị các nút quản lý */}
-          {user?.role === "admin" && (
-            <View style={{ marginTop: 10 }}>
-              <Button title="Xóa sản phẩm" onPress={handleDeleteRecipe} color="red" />
-              <View style={{ height: 8 }} />
-              <Button
-                title={recipe.isHidden ? "Ẩn sản phẩm" : "Hiện sản phẩm"}
-                onPress={handleToggleVisible}
-              />
+          {/* Overlay buttons */}
+          <View style={styles.topButtons}>
+            {/* Back button */}
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={24} color="#000" style={styles.iconBtn} />
+            </TouchableOpacity>
+
+            {/* Right buttons */}
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity
+                onPress={handleLike}
+                style={{ flexDirection: "row", alignItems: "center", position: "relative" }}
+              >
+                <Ionicons
+                  name={liked ? "heart" : "heart-outline"}
+                  size={24}
+                  color={liked ? "red" : "gray"} // đỏ nếu đã like, xám nếu chưa
+                  style={styles.iconBtn}
+                />
+                <Text
+                  style={{
+                    marginLeft: 5,
+                    fontSize: 22,
+                    color: "red",       // chữ màu đỏ
+                    fontWeight: "900",  // in đậm cho nổi bật (tuỳ chọn)
+                    position: "absolute",
+                    top: -10,
+                    right: 0
+                  }}
+                >
+                  {Array.isArray(recipe?.likes) ? recipe?.likes?.length : 0}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => setCommentVisible(true)}>
+                <Ionicons
+                  name={commented ? "chatbubble" : "chatbubble-outline"}
+                  size={24}
+                  color={commented ? "#007bff" : "gray"} // xanh khi đã comment
+                  style={styles.iconBtn}
+                />
+                <Text
+                  style={{
+                    marginLeft: 5,
+                    fontSize: 22,
+                    color: "red",       // chữ màu đỏ
+                    fontWeight: "900",  // in đậm cho nổi bật (tuỳ chọn)
+
+                    position: "absolute",
+                    top: -10,
+                    right: 0
+                  }}
+                >
+                  {Array.isArray(recipe.comments) ? recipe.comments.length : 0}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setRatingVisible(true)}
+                style={{ flexDirection: "row", alignItems: "center", position: "relative" }}
+              >
+                <Ionicons
+                  name={rated ? "star" : "star-outline"}
+                  size={24}
+                  color={rated ? "#ffbf00ff" : "gray"} // đỏ nếu đã like, xám nếu chưa
+                  style={styles.iconBtn}
+                />
+                <Text
+                  style={{
+                    marginLeft: 5,
+                    fontSize: 22,
+                    color: "red",       // chữ màu đỏ
+                    fontWeight: "900",  // in đậm cho nổi bật (tuỳ chọn)
+                    position: "absolute",
+                    top: -10,
+                    right: 0
+                  }}
+                >
+                  {Array.isArray(recipe.ratings) ? recipe.ratings.length : 0}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() =>
+                navigation.navigate("UpdateRecipe", {
+                  id: recipe._id,
+
+                })
+              }>
+                <Ionicons
+                  name="ellipsis-vertical"
+                  size={24}
+                  color="#000"
+                  style={styles.iconBtn}
+                />
+              </TouchableOpacity>
             </View>
-          )}
-        </View>
-
-        <Text style={styles.summary}>{recipe.summary || "Uncategorized"}</Text>
-        <Text style={styles.category}>
-          {recipe.tags?.map((item, index) =>
-            index === recipe.tags.length - 1 ? item : `${item} - `
-          )}
-        </Text>
-      </View>
-
-      {/* Info row */}
-      <View style={styles.infoRow}>
-        <View style={styles.infoBox}>
-          <View style={styles.iconWrapper}>
-            <Ionicons name="time-outline" size={35} color="#000" />
           </View>
-          <Text style={styles.infoText}>{recipe.time?.total ?? 0}{"\n"} Mins</Text>
-
         </View>
 
-        <View style={styles.infoBox}>
-          <View style={styles.iconWrapper}>
-            <Ionicons name="people-outline" size={30} color="#000" />
+        {/* Title + Category */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>{recipe.title}</Text>
+            <Text>{user?.role}</Text>
+
+            {/* Nếu là admin thì mới hiển thị các nút quản lý */}
+            {user?.role === "admin" && (
+              <View style={{ marginTop: 10 }}>
+                <Button title="Xóa sản phẩm" onPress={handleDeleteRecipe} color="red" />
+                <View style={{ height: 8 }} />
+                <Button
+                  title={recipe.isHidden ? "Ẩn sản phẩm" : "Hiện sản phẩm"}
+                  onPress={handleToggleVisible}
+                />
+              </View>
+            )}
           </View>
-          <Text style={styles.infoText}>{recipe.servings}{"\n"} Servings</Text>
-        </View>
 
-        <View style={styles.infoBox}>
-          <View style={styles.iconWrapper}>
-            <Ionicons name="flame-outline" size={30} color="#000" />
-          </View>
-          <Text style={styles.infoText}>{recipe.calories ?? 0}{"\n"} Cal</Text>
-        </View>
-
-        <View style={styles.infoBox}>
-          <View style={styles.iconWrapper}>
-            <Ionicons name="layers-outline" size={30} color="#000" />
-          </View>
-          <Text style={styles.infoText}>{recipe.difficulty}</Text>
-        </View>
-      </View>
-
-      {/* Ingredients */}
-      <Text style={styles.sectionTitle}>Ingredients</Text>
-      {recipe.ingredients?.map((item, index) => (
-        <View key={index} style={styles.ingredientRow}>
-          {/* Chấm tròn vàng */}
-          <View style={styles.bullet} />
-
-          {/* Text */}
-          <Text style={styles.ingredientText}>
-            <Text style={styles.ingredientBold}>{item.quantity}{item.unit} </Text>
-            {item.name}
+          <Text style={styles.summary}>{recipe.summary || "Uncategorized"}</Text>
+          <Text style={styles.category}>
+            {recipe.tags?.map((item, index) =>
+              index === recipe.tags.length - 1 ? item : `${item} - `
+            )}
           </Text>
         </View>
-      ))}
-      {/* Steps */}
-      <Text style={styles.sectionTitle}>Steps</Text>
-      {recipe.steps?.map((step, index) => (
-        <View key={index} style={styles.stepRow}>
-          <View style={styles.stepNumber}>
-            <Text style={styles.stepNumberText}>{index + 1}</Text>
-          </View>
-          <Text style={styles.stepText}>{step}</Text>
-        </View>
-      ))}
-      {/* Contents */}
 
-      {/* Description từ content (HTML) */}
-      <Text style={styles.sectionTitle}>Description</Text>
-      <Text>{recipe.content}</Text>
-      <CommentModal
-        visible={commentVisible}       // phải truyền state visible
-        onClose={() => setCommentVisible(false)}  // đóng modal
-        recipe={recipe}
-        currentUserId={currentUserId}
-        newComment={newComment}
-        setNewComment={setNewComment}
-        handleAddComment={handleAddComment}
-        handleDeleteComment={handleDeleteComment}
-      />
-      {/* RatingModal */}
-      <RatingModal
-        visible={ratingVisible}
-        onClose={() => setRatingVisible(false)}
-        recipe={recipe}
-        currentUserId={currentUserId}
-        newRating={newRating}
-        setNewRating={setNewRating}
-        newRatingComment={newRatingComment}
-        setNewRatingComment={setNewRatingComment}
-        handleAddRating={handleAddRating}
-        handleUpdateRating={handleUpdateRating}
-        handleDeleteRating={handleDeleteRating}
-      />
-    </ScrollView>
+        {/* Info row */}
+        <View style={styles.infoRow}>
+          <View style={styles.infoBox}>
+            <View style={styles.iconWrapper}>
+              <Ionicons name="time-outline" size={35} color="#000" />
+            </View>
+            <Text style={styles.infoText}>{recipe.time?.total ?? 0}{"\n"} Mins</Text>
+
+          </View>
+
+          <View style={styles.infoBox}>
+            <View style={styles.iconWrapper}>
+              <Ionicons name="people-outline" size={30} color="#000" />
+            </View>
+            <Text style={styles.infoText}>{recipe.servings}{"\n"} Servings</Text>
+          </View>
+
+          <View style={styles.infoBox}>
+            <View style={styles.iconWrapper}>
+              <Ionicons name="flame-outline" size={30} color="#000" />
+            </View>
+            <Text style={styles.infoText}>{recipe.calories ?? 0}{"\n"} Cal</Text>
+          </View>
+
+          <View style={styles.infoBox}>
+            <View style={styles.iconWrapper}>
+              <Ionicons name="layers-outline" size={30} color="#000" />
+            </View>
+            <Text style={styles.infoText}>{recipe.difficulty}</Text>
+          </View>
+        </View>
+
+        {/* Ingredients */}
+        <Text style={styles.sectionTitle}>Ingredients</Text>
+        {recipe.ingredients?.map((item, index) => (
+          <View key={index} style={styles.ingredientRow}>
+            {/* Chấm tròn vàng */}
+            <View style={styles.bullet} />
+
+            {/* Text */}
+            <Text style={styles.ingredientText}>
+              <Text style={styles.ingredientBold}>{item.quantity}{item.unit} </Text>
+              {item.name}
+            </Text>
+          </View>
+        ))}
+        {/* Steps */}
+        <Text style={styles.sectionTitle}>Steps</Text>
+        {recipe.steps?.map((step, index) => (
+          <View key={index} style={styles.stepRow}>
+            <View style={styles.stepNumber}>
+              <Text style={styles.stepNumberText}>{index + 1}</Text>
+            </View>
+            <Text style={styles.stepText}>{step}</Text>
+          </View>
+        ))}
+        {/* Contents */}
+
+        {/* Description từ content (HTML) */}
+        <Text style={styles.sectionTitle}>Description</Text>
+        <Text>{recipe.content}</Text>
+
+
+        <CommentModal
+          visible={commentVisible}       // phải truyền state visible
+          onClose={() => setCommentVisible(false)}  // đóng modal
+          recipe={recipe}
+          currentUserId={currentUserId}
+          newComment={newComment}
+          setNewComment={setNewComment}
+          handleAddComment={handleAddComment}
+          handleDeleteComment={handleDeleteComment}
+        />
+        {/* RatingModal */}
+        <RatingModal
+          visible={ratingVisible}
+          onClose={() => setRatingVisible(false)}
+          recipe={recipe}
+          currentUserId={currentUserId}
+          newRating={newRating}
+          setNewRating={setNewRating}
+          newRatingComment={newRatingComment}
+          setNewRatingComment={setNewRatingComment}
+          handleAddRating={handleAddRating}
+          handleUpdateRating={handleUpdateRating}
+          handleDeleteRating={handleDeleteRating}
+        />
+      </ScrollView>
+      
+      
+      {/* Cooking */}
+      <View style={{ padding: 20 }}>
+        <Button title="Start Cook" onPress={() => setModalVisible(true)} />
+        <CookingCarouselModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          recipe={recipe}
+        />
+      </View>
+    </SafeAreaView>
   );
 };
 
 export default RecipeDetail;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: "#fff", marginBottom: 60 },
   thumbnail: {
     width: "100%",
     height: 220,
