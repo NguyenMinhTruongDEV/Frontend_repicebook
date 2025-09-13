@@ -1,29 +1,40 @@
-# Recipe Book App
+# Cooking App
 
-Ứng dụng quản lý công thức nấu ăn, được phát triển bằng **React Native** (Expo) cho frontend và **Node.js + Express** cho backend, với cơ sở dữ liệu **MongoDB**. Người dùng có thể:
-
-- Xem danh sách công thức.
-- Tạo mới, chỉnh sửa và xóa công thức.
-- Cập nhật thông tin cá nhân và avatar.
-- Tải ảnh công thức hoặc avatar lên Cloudinary.
+Ứng dụng nấu ăn trên React Native, cho phép người dùng xem công thức, nhập số lượng người, tính nguyên liệu, theo dõi các bước nấu, tính thời gian nấu và lưu công thức đã nấu.  
 
 ---
 
-## 🔧 Công nghệ sử dụng
+## 📌 Tính năng chính
 
-- **Frontend**: React Native, Expo, Redux Toolkit, Axios
-- **Backend**: Node.js, Express, MongoDB, Mongoose, Multer
-- **Lưu trữ ảnh**: Cloudinary
-- **Quản lý state**: Redux
-- **Routing**: React Navigation
+1. **Xem công thức**  
+   - Hiển thị danh sách công thức, nguyên liệu, các bước nấu.  
+
+2. **Chế độ Cooking Carousel Modal**  
+   - Nhập số lượng người.  
+   - Tự động tính nguyên liệu theo số người.  
+   - Next từng bước: Chuẩn bị → Nấu → Tổng thời gian → Hoàn thành.  
+   - Hiển thị Prep Time, Cook Time và Total Time.  
+
+3. **Lưu công thức đã nấu**  
+   - Lưu vào Redux + AsyncStorage.  
+   - Chỉ lưu khi người dùng đã đăng nhập.  
+   - Xem danh sách công thức đã nấu.  
+   - Xóa từng công thức nếu muốn.  
+
+4. **Quản lý người dùng**  
+   - Kiểm tra đăng nhập trước khi lưu công thức.  
 
 ---
 
-## 🚀 Cài đặt dự án
+## ⚙️ Công nghệ sử dụng
 
-### Backend
+- React Native  
+- Redux Toolkit (`userSlice`, `recipeSlice`)  
+- AsyncStorage (lưu công thức offline)  
+- React Navigation  
+- FlatList / Modal / TextInput / Button  
 
-1. Clone repo backend:
-```bash
-git clone <backend-repo-url>
-cd backend_recipebook
+---
+
+## 🗂️ Cấu trúc thư mục
+
