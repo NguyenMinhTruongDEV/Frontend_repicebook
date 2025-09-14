@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authApi } from '../../api/api.js';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../slice/userSlice.js'; // ← import từ file slice bạn tạo
+import Social from "../../components/social/social.js";
 const LoginUserNameScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const [hidePassword, setHidePassword] = useState(true);
@@ -31,7 +32,7 @@ const LoginUserNameScreen = ({ navigation }) => {
         const userData = res.data.user;
         const token = res.data?.data?.token || res.data?.token;
 
-        console.log("Token:", token);
+        // console.log("Token:", token);
         console.log("Full URL:", res.config.url);
 
         if (!token) throw new Error("Token not found in response");
@@ -101,26 +102,13 @@ const LoginUserNameScreen = ({ navigation }) => {
 
       {/* Sign in button */}
       <TouchableOpacity style={styles.signInBtn} onPress={login} disabled={loading}>
-        {/* <Button style={styles.signInText} title={loading ? 'Logging...' : 'Login'}
-          onPress={login}
-          disabled={loading} /> */}
         <Text style={styles.signInText}>{loading ? 'Logging...' : 'Login With UserName'}</Text>
       </TouchableOpacity>
 
       <Text style={styles.or}>─────── or continue with ───────</Text>
 
       {/* Social buttons */}
-      <View style={styles.socialContainer}>
-        <TouchableOpacity style={styles.socialBtn}>
-          <Ionicons name="logo-google" size={24} color="red" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialBtn}>
-          <Ionicons name="logo-apple" size={24} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialBtn}>
-          <Ionicons name="logo-facebook" size={24} color="#1877F2" />
-        </TouchableOpacity>
-      </View>
+      <Social />
 
       {/* Login With Email */}
       <View style={styles.registerContainer}>
@@ -137,13 +125,6 @@ const LoginUserNameScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Verityfi OTP */}
-      <View style={styles.registerContainer}>
-        <Text>Xác thực tài khoản? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('VerifyCode')} >
-          <Text style={styles.registerText}>Verify Code</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -213,18 +194,7 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 20,
   },
-  socialContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "60%",
-    marginBottom: 25,
-  },
-  socialBtn: {
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    elevation: 2, // Android shadow
-  },
+  
   registerContainer: {
     flexDirection: "row",
   },

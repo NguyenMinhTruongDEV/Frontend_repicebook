@@ -19,6 +19,7 @@ import UpdateRecipe from './src/pages/RecipeBook/UpdateRecipe.js';
 import ForgotPasswordScreen from './src/pages/auth/AuthPassword/ForgotPasswordScreen.js';
 import ResetPasswordOTPScreen from './src/pages/auth/AuthPassword/ResetPasswordOTPScreen.js';
 import DetailUserIDScreen from './src/pages/Admin/DetailUserIDScreen.js';
+import { APP_COLOR } from "./src/utils/constant.js";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -46,16 +47,102 @@ export default function App() {
           {/* Recipe */}
           <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen name="RecipeDetail" component={RecipeDetail} options={{ headerShown: false }} />
-          <Stack.Screen name="CreateRecipe" component={CreateRecipe} options={{ headerShown: true }} />
-          <Stack.Screen name="UpdateRecipe" component={UpdateRecipe} options={{ headerShown: true }} />
+
+          <Stack.Screen
+            name="CreateRecipe"
+            component={CreateRecipe}
+            options={{
+              headerShown: true,
+              title: "Tạo công thức mới",
+              headerStyle: {
+                backgroundColor: APP_COLOR.ORANGE,   // nền cam nhạt
+              },
+              headerTintColor: APP_COLOR.WHITE,        // màu chữ
+              headerTitleStyle: {
+                fontWeight: "bold",
+                fontSize: 18,
+              },
+              headerBackTitleVisible: false,  // ẩn chữ "Back"
+            }}
+          />
+
+          <Stack.Screen
+            name="UpdateRecipe"
+            component={UpdateRecipe}
+            options={{
+              headerShown: true,
+              title: "Cập nhật công thức",
+              headerStyle: {
+                backgroundColor: APP_COLOR.ORANGE, // nền cam
+              },
+              headerTintColor: APP_COLOR.WHITE,       // màu chữ + icon back
+              headerTitleStyle: {
+                fontWeight: "bold",
+                fontSize: 18,
+              },
+              headerBackTitleVisible: false, // ẩn chữ "Back" trên iOS
+            }}
+          />
+
           {/* End Recipe */}
 
           {/* Profile */}
-          <Stack.Screen name="EditProfile" component={EditProfile} />
-          <Stack.Screen name="EditProfilePassword" component={EditProfilePassword} />
+          <Stack.Screen
+            name="EditProfile"
+            component={EditProfile}
+            options={{
+              headerShown: true,
+              title: "Chỉnh sửa hồ sơ",
+              headerStyle: {
+                backgroundColor: APP_COLOR.ORANGE, // nền cam
+              },
+              headerTintColor: APP_COLOR.WHITE,       // màu chữ + icon back
+              headerTitleStyle: {
+                fontWeight: "bold",
+                fontSize: 18,
+              },
+              headerBackTitleVisible: false, // ẩn chữ "Back" trên iOS
+            }}
+          />
+
+          <Stack.Screen
+            name="EditProfilePassword"
+            component={EditProfilePassword}
+            options={{
+              headerShown: true,
+              title: "Đổi mật khẩu",
+              headerStyle: {
+                backgroundColor: APP_COLOR.ORANGE, // nền cam
+              },
+              headerTintColor: APP_COLOR.WHITE,       // màu chữ + icon back
+              headerTitleStyle: {
+                fontWeight: "bold",
+                fontSize: 18,
+              },
+              headerBackTitleVisible: false, // ẩn chữ "Back" trên iOS
+            }}
+          />
+
           {/* End Profile */}
           {/* Admin */}
-          <Stack.Screen name="DetailUserIDScreen" component={DetailUserIDScreen} />
+          <Stack.Screen
+            name="DetailUserIDScreen"
+            component={DetailUserIDScreen}
+            options={{
+              headerShown: true,
+              title: "Chi tiết người dùng",
+              headerStyle: {
+                backgroundColor: APP_COLOR.ORANGE, // nền cam
+              },
+              headerTintColor: APP_COLOR.WHITE,       // màu chữ + icon back
+              headerTitleStyle: {
+                fontWeight: "bold",
+                fontSize: 18,
+              },
+              headerBackTitleVisible: false, // ẩn chữ "Back" trên iOS
+            }}
+          />
+
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

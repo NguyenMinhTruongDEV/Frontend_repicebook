@@ -10,11 +10,11 @@ export default function Home({ navigation }) {
         style={styles.logo}
       />
       <Text style={styles.title}>
-        Cookmate AI 🍲🔍 | Find, Create & Enjoy Delicious Recipes!
+        Cookmate 🍲🔍 | Find, Create & Enjoy Delicious Recipes!
       </Text>
 
       <Text style={styles.subtitle}>
-        Generate delicious recipes in seconds with the power of AI! 🍔✨
+        Generate delicious recipes in seconds with the power of! 🍔✨
       </Text>
 
       {/* Nút Login */}
@@ -24,14 +24,6 @@ export default function Home({ navigation }) {
       >
         <Text style={styles.buttonText}>Get Starts</Text>
       </TouchableOpacity>
-
-      {/* Nút Register */}
-      {/* <TouchableOpacity
-        style={[styles.button, styles.registerBtn]}
-        onPress={() => navigation.navigate("Register")}
-      >
-        <Text style={styles.buttonText}>Register</Text>
-      </TouchableOpacity> */}
     </View>
   );
 }

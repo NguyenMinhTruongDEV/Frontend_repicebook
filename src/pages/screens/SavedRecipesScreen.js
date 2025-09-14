@@ -36,7 +36,7 @@ const SavedRecipesScreen = () => {
   return (
     <View style={{ flex: 1, padding: 16 }}>
       <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
-        Công thức đã lưu của bạn
+        Công thức đã nấu của bạn
       </Text>
 
       <FlatList
@@ -52,14 +52,14 @@ const SavedRecipesScreen = () => {
             alignItems: 'center'
           }}>
             <View>
-              <Text>{item.title}</Text>
-              <Text>Số người nấu: {item.cookedFor}</Text>
+              <Text>Tên món ăn: {item.title}</Text>
+              <Text>Số lượng người ăn: {item.cookedFor}</Text>
               <Text>Ngày nấu: {new Date(item.cookedAt).toLocaleDateString()}</Text>
             </View>
             <Button title="Xóa" color="red" onPress={() => handleDelete(item.id)} />
           </View>
         )}
-        ListEmptyComponent={<Text>Bạn chưa lưu công thức nào.</Text>}
+        ListEmptyComponent={<Text>Bạn chưa nấu món ăn nào.</Text>}
       />
     </View>
   );

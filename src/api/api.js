@@ -18,7 +18,8 @@ export const authApi = {
 // ======================== RECIPES API ========================
 export const recipesApi = {
   list: (q = "", page, limit) => axiosInstance.get("/recipes", { params: { q, page, limit } }),
-  listRecipes: (q = "", page, limit) => axiosInstance.get("/recipes", { params: { q, page, limit } }), 
+  listRecipes: (page, limit, tags = "", sort = "", q = "") => axiosInstance.get("/recipes", { params: { page, limit, tags, sort, q } }),
+  listRecipesDifficulty: (page, limit, tags = "", sort = "", q = "", difficulty = "Trung bình") => axiosInstance.get("/recipes", { params: { page, limit, tags , sort , q , difficulty  } }), 
   updateRecipes: (id_recipe, data) => axiosInstance.put(`recipes/${id_recipe}`, data),
   createRecipes: (data) => axiosInstance.post("/recipes", data),
   getDetails: (id) => axiosInstance.get(`/recipes/${id}`),

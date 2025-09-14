@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import ResultModal from '../../components/model/ResultModal.js'; // import component modal
-
+import Icon from "react-native-vector-icons/MaterialIcons"
 import CookingCarouselModal from '../Cook/CookingCarouselModal.js';
 import {
   View,
@@ -10,11 +9,8 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
-  Modal,
+
   FlatList,
-  TextInput,
-  Button,
-  TouchableWithoutFeedback,
   Alert,
   SafeAreaView,
 } from "react-native";
@@ -25,7 +21,7 @@ import CommentModal from "../../components/model/CommentModal";
 import RatingModal from "../../components/model/RatingModal";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
-import CookingModal from "../Cook/StepComplete.js";
+
 const RecipeDetail = ({ route, navigation }) => {
   const { id } = route.params;
   // 🔹 Lấy user từ Redux
@@ -227,7 +223,7 @@ const RecipeDetail = ({ route, navigation }) => {
           ratings: [...filtered, newRatingData],
         };
       });
-
+      console.log("Added new rating:", newRatingData);
       setNewRatingComment("");
       setNewRating(0);
       Alert.alert("Success", "You rated this recipe!");
@@ -467,28 +463,71 @@ const RecipeDetail = ({ route, navigation }) => {
         {/* Title + Category */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>{recipe.title}</Text>
-            <Text>{user?.role}</Text>
+            <View style={{ paddingVertical: 10 }}>
+              <Text style={styles.title}>{recipe.title}</Text>
 
+              {user?.role && (
+                <Text style={styles.role}>{user.role}</Text>
+              )}
+
+              <Text style={styles.summary}>{recipe.summary || "Uncategorized"}</Text>
+
+              {recipe.tags?.length > 0 && (
+                <Text style={styles.category}>
+                  #{recipe.tags.join(" - ")}
+                </Text>
+              )}
+            </View>
             {/* Nếu là admin thì mới hiển thị các nút quản lý */}
             {user?.role === "admin" && (
-              <View style={{ marginTop: 10 }}>
-                <Button title="Xóa sản phẩm" onPress={handleDeleteRecipe} color="red" />
-                <View style={{ height: 8 }} />
-                <Button
-                  title={recipe.isHidden ? "Ẩn sản phẩm" : "Hiện sản phẩm"}
+              <View style={{ marginTop: 10, flexDirection: "row", justifyContent: "space-between" }}>
+                {/* Nút Xóa sản phẩm */}
+                <TouchableOpacity
+                  onPress={handleDeleteRecipe}
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#ff4d4f",
+                    paddingVertical: 12,
+                    borderRadius: 10,
+                    alignItems: "center",
+                    marginRight: 8,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+                    elevation: 5
+                  }}
+                >
+                  <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>Xóa sản phẩm</Text>
+                </TouchableOpacity>
+
+                {/* Nút Hiện/Ẩn sản phẩm */}
+                <TouchableOpacity
                   onPress={handleToggleVisible}
-                />
+                  style={{
+                    flex: 1,
+                    backgroundColor: recipe.isHidden ? "#52c41a" : "#faad14",
+                    paddingVertical: 12,
+                    borderRadius: 10,
+                    alignItems: "center",
+                    marginLeft: 8,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+                    elevation: 5
+                  }}
+                >
+                  <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>
+                    {recipe.isHidden ? "Hiện sản phẩm" : "Ẩn sản phẩm"}
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
+
           </View>
 
-          <Text style={styles.summary}>{recipe.summary || "Uncategorized"}</Text>
-          <Text style={styles.category}>
-            {recipe.tags?.map((item, index) =>
-              index === recipe.tags.length - 1 ? item : `${item} - `
-            )}
-          </Text>
+          
         </View>
 
         {/* Info row */}
@@ -551,7 +590,7 @@ const RecipeDetail = ({ route, navigation }) => {
 
         {/* Description từ content (HTML) */}
         <Text style={styles.sectionTitle}>Description</Text>
-        <Text>{recipe.content}</Text>
+        <Text style={styles.contentTitle}>{recipe.content}</Text>
 
 
         <CommentModal
@@ -582,8 +621,17 @@ const RecipeDetail = ({ route, navigation }) => {
       
       
       {/* Cooking */}
-      <View style={{ padding: 20 }}>
-        <Button title="Start Cook" onPress={() => setModalVisible(true)} />
+      <View style={{ padding: 20, alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={() => setModalVisible(true)}
+          activeOpacity={0.8}
+          style={styles.startCookButton}
+        >
+          <Icon name="restaurant-menu" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>Start Cook</Text>
+        </TouchableOpacity>
+
+        {/* Modal */}
         <CookingCarouselModal
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
@@ -620,8 +668,27 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   header: { padding: 16 },
-  title: { fontSize: 22, fontWeight: "bold", color: "#000" },
-  summary: { fontSize: 16, color: "gray", marginTop: 4 },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 4,
+  },
+  role: {
+    fontSize: 14,
+    color: "#fa541c",
+    marginBottom: 6,
+  },
+  summary: {
+    fontSize: 16,
+    color: "#555",
+    marginBottom: 6,
+  },
+  category: {
+    fontSize: 14,
+    color: "#888",
+  },
+
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -629,12 +696,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
 
   },
-  category: {
-    fontSize: 14,
-    color: "gray",
-    marginTop: 4,
-    fontStyle: "italic", // 👈 tuỳ chọn, cho giống kiểu subtitle
-  },
+ 
   infoBox: {
     alignItems: "center",
     backgroundColor: "#FFD84D",
@@ -666,6 +728,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginHorizontal: 16,
     marginTop: 10,
+    marginBottom: 6,
+  },
+  contentTitle: {
+    marginHorizontal: 25,
+    marginTop: 2,
     marginBottom: 6,
   },
   ingredientRow: {
@@ -714,5 +781,20 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   // Coments
-
+  // Start Cook
+  startCookButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fa541c",
+    paddingVertical: 14,
+    paddingHorizontal: 25,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  }
+  // End Start Cook
 });

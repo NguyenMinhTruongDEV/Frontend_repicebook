@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { useSelector } from 'react-redux';
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import {
   Modal,
@@ -29,12 +30,15 @@ const RatingModal = ({
   handleUpdateRating,
   handleDeleteRating,     // xóa rating nếu cần
 }) => {
+  
+  const userProfile = useSelector(state => state.user.data);
+  const userId = userProfile ? userProfile.id : null;
   const flatListRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
   // Giữ nguyên thứ tự API trả về
   const renderItem = ({ item }) => (
     <View style={styles.item}>
-      <Text style={{ fontWeight: "bold" }}>{item.user}</Text>
+      {item.comment && <Text style={{ fontWeight: "bold", fontSize: 16 }}>{item.comment}</Text>}
       <View style={{ flexDirection: "row" }}>
         {Array(item.stars) // tạo mảng độ dài = số sao
           .fill(0) // điền dummy
@@ -47,7 +51,13 @@ const RatingModal = ({
             />
           ))}
       </View>
-      {item.comment && <Text>{item.comment}</Text>}
+      
+      
+      <Text >
+        {new Date(item.updatedAt || item.createdAt || Date.now()).toLocaleString()}
+        {String(item.user) === String(userId) && <Text> • của tôi</Text>}
+
+      </Text>
       {item.user === currentUserId && (
         <View style={{ flexDirection: "row", justifyContent: "space-between", width: 100 }}>
           <TouchableOpacity
@@ -108,7 +118,7 @@ const RatingModal = ({
           }}
         />
 
-        
+
         {/* Input + Send / Update */}
         {handleAddRating && (
           <View style={styles.inputContainer}>

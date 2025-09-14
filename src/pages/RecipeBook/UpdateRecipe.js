@@ -3,18 +3,15 @@ import {
   View,
   Text,
   TextInput,
-  Button,
   ScrollView,
   Alert,
   StyleSheet,
   TouchableOpacity,
   Image,
-  Linking,
-  Platform
 } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
-
+import Icon from "react-native-vector-icons/MaterialIcons";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { recipesApi } from "../../api/api.js"; // import API
@@ -238,8 +235,30 @@ export default function UpdateRecipe({ route, navigation }) {
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 150 }}>
       <Text style={styles.label}>Thumbnail:</Text>
       {thumbnail && <Image source={thumbnail ? { uri: thumbnail } : require('../../../assets/adaptive-icon.png')} style={{ width: "100%", height: 200, marginBottom: 8 }} />}
-      { }
-      <Button title="Chọn ảnh" onPress={pickImage} />
+      
+      <View style={{ paddingVertical: 10, alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={pickImage}
+          activeOpacity={0.8}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#1890ff",
+            paddingVertical: 12,
+            paddingHorizontal: 25,
+            borderRadius: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+          <Icon name="photo-library" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>Chọn ảnh</Text>
+        </TouchableOpacity>
+      </View>
 
       <Text style={styles.label}>Tiêu đề:</Text>
       <TextInput style={styles.input} value={title} onChangeText={setTitle} />
@@ -314,7 +333,31 @@ export default function UpdateRecipe({ route, navigation }) {
           )}
         </View>
       ))}
-      <Button title="Thêm nguyên liệu" onPress={handleAddIngredient} />
+      
+
+      <View style={{ paddingVertical: 10, alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={handleAddIngredient}
+          activeOpacity={0.8}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#52c41a",
+            paddingVertical: 12,
+            paddingHorizontal: 25,
+            borderRadius: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+          <Icon name="add-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>Thêm nguyên liệu</Text>
+        </TouchableOpacity>
+      </View>
 
       <Text style={styles.label}>Các bước:</Text>
       {steps.map((step, idx) => (
@@ -336,12 +379,58 @@ export default function UpdateRecipe({ route, navigation }) {
           )}
         </View>
       ))}
-      <Button title="Thêm bước" onPress={handleAddStep} />
+      <View style={{ paddingVertical: 10, alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={handleAddStep}
+          activeOpacity={0.8}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#fa8c16", // màu cam nổi bật
+            paddingVertical: 12,
+            paddingHorizontal: 25,
+            borderRadius: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+          <Icon name="playlist-add" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>Thêm bước</Text>
+        </TouchableOpacity>
+      </View>
 
       <Text style={styles.label}>Tags (ngăn cách bằng dấu ,):</Text>
       <TextInput style={styles.input} value={tags} onChangeText={setTags} />
 
-      <Button title="Cập nhật công thức" onPress={handleUpdate} color="#28a745" />
+      <View style={{ paddingVertical: 10, alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={handleUpdate}
+          activeOpacity={0.8}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#28a745", // màu xanh lá
+            paddingVertical: 14,
+            paddingHorizontal: 25,
+            borderRadius: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+          <Icon name="update" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>
+            Cập nhật công thức
+          </Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }

@@ -8,10 +8,13 @@ import {
   Alert,
   StyleSheet,
   TouchableOpacity,
+  Image,
 } from "react-native";
+import Icon from "react-native-vector-icons/MaterialIcons";
 import { Picker } from "@react-native-picker/picker";
 import { recipesApi } from "../../api/api.js"; // chắc chắn import đúng
-
+import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 export default function CreateRecipe({ navigation }) {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
@@ -23,6 +26,7 @@ export default function CreateRecipe({ navigation }) {
   const [ingredients, setIngredients] = useState([{ name: "", quantity: "", unit: "" }]);
   const [steps, setSteps] = useState([""]);
   const [tags, setTags] = useState("");
+  const [thumbnail, setThumbnail] = useState(null);
 
   // Add/remove ingredient
   const handleAddIngredient = () => setIngredients([...ingredients, { name: "", quantity: "", unit: "" }]);
@@ -39,7 +43,65 @@ export default function CreateRecipe({ navigation }) {
     list.splice(idx, 1);
     setSteps(list);
   };
+  // Images
+  // --- Image picker cho thumbnail ---
+  const pickImage = async () => {
+    Alert.alert("Chọn ảnh", "Camera, Thư viện hoặc File khác?", [
+      {
+        text: "Camera",
+        onPress: async () => {
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== "granted") {
+            Alert.alert("Quyền bị từ chối", "Bạn cần bật quyền camera trong Settings.");
+            return;
+          }
+          const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            setThumbnail(result.assets[0].uri);
+          }
+        },
+      },
+      {
+        text: "Thư viện",
+        onPress: async () => {
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== "granted") {
+            Alert.alert("Quyền bị từ chối", "Bạn cần bật quyền thư viện trong Settings.");
+            return;
+          }
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            setThumbnail(result.assets[0].uri);
+          }
+        },
+      },
+      {
+        text: "File khác",
+        onPress: async () => {
+          const result = await DocumentPicker.getDocumentAsync({
+            type: "image/*",
+            multiple: false,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            const uri = result.assets[0].uri;
+            setThumbnail(uri);
+          }
+        },
+      },
+      { text: "Hủy", style: "cancel" },
+    ]);
+  };
 
+  // End Images
   // Handle save
   const handleSave = async () => {
     // Validate required fields
@@ -56,7 +118,6 @@ export default function CreateRecipe({ navigation }) {
       return;
     }
 
-    // Validate title/content length
     if (title.trim().length < 5) {
       Alert.alert("Lỗi", "Tiêu đề phải ít nhất 5 ký tự");
       return;
@@ -66,14 +127,12 @@ export default function CreateRecipe({ navigation }) {
       return;
     }
 
-    // Validate difficulty
     const difficultyOptions = ["Dễ", "Trung bình", "Khó"];
     if (!difficultyOptions.includes(difficulty)) {
       Alert.alert("Lỗi", "Độ khó phải là một trong: Dễ, Trung bình, Khó");
       return;
     }
 
-    // Validate ingredients
     const emptyIngredient = ingredients.find(
       (i) => !i.name.trim() || !i.quantity || !i.unit.trim()
     );
@@ -82,45 +141,69 @@ export default function CreateRecipe({ navigation }) {
       return;
     }
 
-    // Validate steps
     const emptyStep = steps.find((s) => !s.trim());
     if (emptyStep) {
       Alert.alert("Lỗi", "Các bước không được để trống!");
       return;
     }
 
-    // Prepare tags (remove empty)
     const tagList = tags
       ? tags.split(",").map((t) => t.trim()).filter((t) => t.length > 0)
       : [];
 
-    // Prepare data
-    const data = {
-      title: title.trim(),
-      summary: summary.trim(),
-      content: content.trim(),
-      difficulty,
-      servings: Number(servings),
-      time: {
-        prep: Number(prep) || 0,
-        cook: Number(cook) || 0,
-        total: (Number(prep) || 0) + (Number(cook) || 0),
-      },
-      ingredients: ingredients.map((i) => ({
-        name: i.name.trim(),
-        quantity: Number(i.quantity),
-        unit: i.unit.trim(),
-      })),
-      steps: steps.map((s) => s.trim()),
-      tags: tagList,
-    };
-
-    // Send request
     try {
-      const res = await recipesApi.createRecipes(data);
-      console.log("Server response:", res.data);
+      const formData = new FormData();
 
-      // Show success
+      // Thêm dữ liệu text vào form
+      formData.append("title", title.trim());
+      formData.append("summary", summary.trim());
+      formData.append("content", content.trim());
+      formData.append("difficulty", difficulty);
+      formData.append("servings", String(servings));
+
+      formData.append("time[prep]", String(Number(prep) || 0));
+      formData.append("time[cook]", String(Number(cook) || 0));
+      formData.append(
+        "time[total]",
+        String((Number(prep) || 0) + (Number(cook) || 0))
+      );
+
+      // Ingredients (mảng object)
+      ingredients.forEach((i, idx) => {
+        formData.append(`ingredients[${idx}][name]`, i.name.trim());
+        formData.append(`ingredients[${idx}][quantity]`, String(i.quantity));
+        formData.append(`ingredients[${idx}][unit]`, i.unit.trim());
+      });
+
+      // Steps (mảng string)
+      steps.forEach((s, idx) => {
+        formData.append(`steps[${idx}]`, s.trim());
+      });
+
+      // Tags
+      tagList.forEach((t, idx) => {
+        formData.append(`tags[${idx}]`, t);
+      });
+
+      // Thumbnail (nếu có chọn mới)
+      if (thumbnail) {
+        const filename = thumbnail.split("/").pop();
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : "image/jpeg";
+
+        formData.append("thumbnail", {
+          uri: thumbnail,
+          name: filename,
+          type,
+        });
+      }
+
+      // Gửi request
+      const res = await recipesApi.createRecipes(formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      console.log("Server response:", res.data);
       const recipeTitle = res.data?.title || res.data?.data?.title || "Recipe";
       Alert.alert("Thành công", `Recipe "${recipeTitle}" đã được lưu!`);
 
@@ -135,6 +218,7 @@ export default function CreateRecipe({ navigation }) {
       setIngredients([{ name: "", quantity: "", unit: "" }]);
       setSteps([""]);
       setTags("");
+      setThumbnail(null);
     } catch (err) {
       console.error(err.response?.data || err.message);
       Alert.alert(
@@ -144,8 +228,34 @@ export default function CreateRecipe({ navigation }) {
     }
   };
 
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 150 }}>
+      <Text style={styles.label}>Thumbnail:</Text>
+      {thumbnail && <Image source={thumbnail ? { uri: thumbnail } : require('../../../assets/adaptive-icon.png')} style={{ width: "100%", height: 200, marginBottom: 8 }} />}
+      <View style={{ paddingVertical: 10, alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={pickImage}
+          activeOpacity={0.8}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#1890ff",
+            paddingVertical: 12,
+            paddingHorizontal: 25,
+            borderRadius: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+          <Icon name="photo-library" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>Chọn ảnh</Text>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.label}>Tiêu đề:</Text>
       <TextInput style={styles.input} value={title} onChangeText={setTitle} />
 
@@ -234,7 +344,29 @@ export default function CreateRecipe({ navigation }) {
           )}
         </View>
       ))}
-      <Button title="Thêm nguyên liệu" onPress={handleAddIngredient} />
+      <View style={{ paddingVertical: 10, alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={handleAddIngredient}
+          activeOpacity={0.8}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#52c41a",
+            paddingVertical: 12,
+            paddingHorizontal: 25,
+            borderRadius: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+          <Icon name="add-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>Thêm nguyên liệu</Text>
+        </TouchableOpacity>
+      </View>
 
       <Text style={styles.label}>Các bước:</Text>
       {steps.map((step, idx) => (
@@ -256,12 +388,58 @@ export default function CreateRecipe({ navigation }) {
           )}
         </View>
       ))}
-      <Button title="Thêm bước" onPress={handleAddStep} />
+      <View style={{ paddingVertical: 10, alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={handleAddStep}
+          activeOpacity={0.8}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#fa8c16", // màu cam nổi bật
+            paddingVertical: 12,
+            paddingHorizontal: 25,
+            borderRadius: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+          <Icon name="playlist-add" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>Thêm bước</Text>
+        </TouchableOpacity>
+      </View>
 
       <Text style={styles.label}>Tags (ngăn cách bằng dấu ,):</Text>
       <TextInput style={styles.input} value={tags} onChangeText={setTags} />
 
-      <Button title="Lưu công thức" onPress={handleSave} color="#28a745" />
+      <View style={{ paddingVertical: 10, alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={handleSave}
+          activeOpacity={0.8}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#28a745", // màu xanh lá
+            paddingVertical: 14,
+            paddingHorizontal: 25,
+            borderRadius: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+          <Icon name="update" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>
+            Cập nhật công thức
+          </Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }

@@ -1,9 +1,10 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { ScrollView, TouchableOpacity, Text, Image, View, ActivityIndicator, StyleSheet, Dimensions, FlatList, SafeAreaView, Animated } from 'react-native';
+import { ScrollView, TouchableOpacity, Text, Image, View, ActivityIndicator, StyleSheet, Dimensions, FlatList, SafeAreaView, Animated, ImageBackground } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { recipesApi } from '../../api/api.js';
 import Pagination from '../../components/Pagination/Pagination.js';
+import { useSelector } from "react-redux";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import Carousel from "react-native-reanimated-carousel";
@@ -13,13 +14,11 @@ const numColumns = 2;
 const cardMargin = 16;
 const cardWidth = (width - cardMargin * (numColumns + 1)) / numColumns;
 
-
-const cardMarginDesserts = 12;
-const cardWidthDesserts = (width - cardMargin * (numColumns * 2)) / numColumns;
-
+const ITEM_WIDTH = (width - 40) / 2; // 2 cột, margin 20
 
 const BANNER_WIDTH = width * 0.9; // rộng 90% màn hình
 const BANNER_HEIGHT = 250;
+
 const staticBanner = {
   id: '1',
   title: '20% Off Premium',
@@ -35,6 +34,36 @@ const categories = [
   { id: "5", name: "All", icon: require("../../../assets/beef_pie.jpg") },
 ];
 
+const BannerCarousel = [
+  {
+    id: '1',
+    title: '20% Off Premium',
+    subtitle: 'Limited time offer',
+    description: 'Get access to exclusive recipes',
+    image: require('../../../assets/beef_pie.jpg'),
+  },
+  {
+    id: '2',
+    title: '20% Off Premium',
+    subtitle: 'Limited time offer',
+    description: 'Get access to exclusive recipes',
+    image: require('../../../assets/beef_pie.jpg'),
+  },
+  {
+    id: '3',
+    title: '20% Off Premium',
+    subtitle: 'Limited time offer',
+    description: 'Get access to exclusive recipes',
+    image: require('../../../assets/beef_pie.jpg'),
+  },
+  {
+    id: '4',
+    title: '20% Off Premium',
+    subtitle: 'Limited time offer',
+    description: 'Get access to exclusive recipes',
+    image: require('../../../assets/beef_pie.jpg'),
+  },
+];
 
 const bannerData = [
   {
@@ -61,12 +90,13 @@ const bannerData = [
 ];
 
 export default function HomeScreen({ navigation }) {
+  const userProfile = useSelector(state => state.user.data);
   const [topPicks, setTopPicks] = useState([]);
 
   const [desserts, setDesserts] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 5; // số item mỗi trang
+  const limit = 6; // số item mỗi trang
   // desserts
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -83,7 +113,7 @@ export default function HomeScreen({ navigation }) {
     try {
       setLoading(true);
       // truyền đúng tham số (q, page, limit)
-      const res = await recipesApi.listRecipes("", pageNum, limit);
+      const res = await recipesApi.list("", pageNum, limit);
 
       const data = res.data?.data || res.data;
       const meta = res.data?.meta || {};
@@ -127,14 +157,14 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.header}>
         <View>
           <Text style={styles.welcomeText}>Welcome Back!</Text>
-          <Text style={styles.userName}>Cristina Kiehn</Text>
+          <Text style={styles.userName}>{userProfile.username}</Text>
         </View>
         <TouchableOpacity style={styles.notificationButton}>
           <Ionicons name="notifications-outline" size={24} color="#333" />
           <View style={styles.notificationBadge} />
         </TouchableOpacity>
       </View>
-      <View style={styles.containerCarousel}>
+      {/* <View style={styles.containerCarousel}>
         <Carousel
           loop
           width={width - 40}
@@ -142,7 +172,7 @@ export default function HomeScreen({ navigation }) {
           autoPlay={true}
           data={desserts}
           scrollAnimationDuration={1000}
-          onSnapToItem={(index) => setCurrentIndex(index % desserts.length)} // 👈 fix lặp
+          onSnapToItem={(index) => setCurrentIndex(index % desserts.length)}
           renderItem={({ item }) => (
             <View style={styles.cardCarousel}>
               <Image
@@ -150,12 +180,19 @@ export default function HomeScreen({ navigation }) {
                 style={styles.imageCarousel}
                 resizeMode="cover"
               />
-              <Text style={styles.titleCarousel}>{item.title}</Text>
+              
+              <View style={styles.overlayCarousel}>
+                <Text style={styles.titleCarousel}>{item.title}</Text>
+                {item.subtitle && <Text style={styles.subtitleCarousel}>{item.subtitle}</Text>}
+                <TouchableOpacity style={styles.buttonCarousel}>
+                  <Text style={styles.buttonTextCarousel}>Shop Now</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         />
 
-        {/* Dot Indicator */}
+        
         <View style={styles.dotContainerCarousel}>
           {desserts.map((_, index) => (
             <View
@@ -164,8 +201,48 @@ export default function HomeScreen({ navigation }) {
             />
           ))}
         </View>
-      </View>
+      </View> */}
+      
 
+      <View style={styles.containerCarousel}>
+        <Carousel
+         
+          height={220}
+         
+          loop
+          width={width}
+          
+          autoPlay={true}
+          data={BannerCarousel}
+          onSnapToItem={(index) => setCurrentIndex(index)}
+          renderItem={({ item }) => (
+            <ImageBackground
+              source={item.image}
+              style={styles.cardCarousel}
+              imageStyle={{ borderRadius: 15 }}
+            >
+              <View style={styles.overlayCarousel}>
+                <Text style={styles.titleCarousel}>{item.title}</Text>
+                <Text style={styles.subtitleCarousel}>{item.subtitle}</Text>
+                <TouchableOpacity style={styles.button}>
+                  <Text style={styles.buttonTextCarousel}>{item.buttonText}</Text>
+                </TouchableOpacity>
+              </View>
+            </ImageBackground>
+          )}
+        />
+        <View style={styles.paginationCarousel}>
+          {BannerCarousel.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dotCarousel,
+                { opacity: index === currentIndex ? 1 : 0.3 },
+              ]}
+            />
+          ))}
+        </View>
+      </View>
       {/* Simple ScrollView Carousel */}
 
       {/* Categories */}
@@ -198,7 +275,7 @@ export default function HomeScreen({ navigation }) {
       {/* Top Picks */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Chicken Top Picks</Text>
+          <Text style={styles.sectionTitle}>Recipe Top Picks</Text>
           <TouchableOpacity>
             <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
@@ -210,42 +287,49 @@ export default function HomeScreen({ navigation }) {
             (item && item.id != null ? item.id.toString() : index.toString())
           }
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16 }}
+          contentContainerStyle={{
+            paddingHorizontal: 13,
+            columnGap: 13,
+            marginBottom: 12
+          }}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.card} activeOpacity={0.9}>
-              <Image source={{ uri: item.thumbnail }} style={styles.cardImage} />
-              <TouchableOpacity style={styles.heartIcon}>
-                <Ionicons name="heart-outline" size={20} color="#FF6B00" />
-              </TouchableOpacity>
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
-                <View style={styles.cardMeta}>
-                  <View style={styles.cardMetaItem}>
-                    <Ionicons name="time-outline" size={12} color="#888" />
-                    <Text style={styles.cardMetaText}>{item.time.total}</Text>
-                  </View>
-                  <View style={styles.cardMetaItem}>
-                    <Ionicons name="speedometer-outline" size={12} color="#888" />
-                    <Text style={styles.cardMetaText}>{item.difficulty}</Text>
-                  </View>
+            <View style={styles.itemContainerPicks}>
+              <View style={styles.contentPicks}>
+                <Text onPress={() =>
+                  navigation.navigate("RecipeDetail", { id: item._id }) // 👈 truyền object recipe
+                } style={styles.titlePicks}>{item.title}</Text>
+                <View style={styles.ratingPicks}>
+                  <Text style={styles.starText}>⭐⭐⭐⭐</Text>
                 </View>
-                {/* <Text style={styles.cardChef}>By: {item.createdBy}</Text> */}
-                <View style={styles.cardRatingContainer}>
-                  <Ionicons name="star" size={14} color="#FFD700" />
-                  <Text style={styles.cardRating}>{getAverageRating(item.ratings)}</Text>
+                <View style={styles.metaInfoPicks}>
+                  <Text style={styles.authorPicks}>👨‍🍳 By {item.author || 'Priyath Sagar'}</Text>
+                  <Text style={styles.timePicks}>🕒 {item.time?.total || '30min'}</Text>
                 </View>
               </View>
-            </TouchableOpacity>
+              <View  style={styles.imageContainerPicks}>
+                <Image source={{ uri: item.thumbnail }} style={styles.imagePicks} />
+              </View>
+            </View>
           )}
         />
+
+
       </View>
       {/* Banner */}
-      <View style={styles.bannerCard}>
-        <Image source={staticBanner.image} style={styles.bannerImage} />
-        <View style={styles.bannerText}>
-          <Text style={styles.title}>{staticBanner.title}</Text>
-          <Text style={styles.subtitle}>{staticBanner.subtitle}</Text>
-          <Text style={styles.description}>{staticBanner.description}</Text>
+      <View style={styles.containerBanner}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Discount Offer</Text>
+          <TouchableOpacity>
+            <Text style={styles.seeAllText}>See All</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.bannerCard}>
+          <Image source={staticBanner.image} style={styles.bannerImage} />
+          <View style={styles.bannerText}>
+            <Text style={styles.title}>{staticBanner.title}</Text>
+            <Text style={styles.subtitle}>{staticBanner.subtitle}</Text>
+            <Text style={styles.description}>{staticBanner.description}</Text>
+          </View>
         </View>
       </View>
       {/* end banner */}
@@ -262,38 +346,34 @@ export default function HomeScreen({ navigation }) {
     </SafeAreaView>
   );
   const renderItem = ({ item }) => (
-    // <View>
-    //   <TouchableOpacity style={styles.cardDesserts} activeOpacity={0.9}>
-    //     <Image source={{ uri: item.thumbnail }} style={styles.cardImage} />
-    //     <TouchableOpacity style={styles.heartIcon}>
-    //       <Ionicons name="heart-outline" size={20} color="#FF6B00" />
-    //     </TouchableOpacity>
-    //     <View style={styles.cardContent}>
-    //       <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
-    //       <View style={styles.cardMeta}>
-    //         <View style={styles.cardMetaItem}>
-    //           <Ionicons name="time-outline" size={12} color="#888" />
-    //           <Text style={styles.cardMetaText}>{item.time.total}</Text>
-    //         </View>
-    //         <View style={styles.cardMetaItem}>
-    //           <Ionicons name="speedometer-outline" size={12} color="#888" />
-    //           <Text style={styles.cardMetaText}>{item.difficulty}</Text>
-    //         </View>
-    //       </View>
-    //       <Text style={styles.cardChef}>By: {item.createdBy}</Text>
-    //       <View style={styles.cardRatingContainer}>
-    //         <Ionicons name="star" size={14} color="#FFD700" />
-    //         <Text style={styles.cardRating}>{getAverageRating(item.ratings)}</Text>
-    //       </View>
-    //     </View>
-    //   </TouchableOpacity>
-    // </View>
-    <View style={styles.cardDesserts}>
-      <Image source={{ uri: item.thumbnail }} style={styles.imageDesserts} resizeMode="cover"/>
-      <Text style={styles.titleDesserts} numberOfLines={2}>
-        {item.title} {item.icon}
-      </Text>
-    </View>
+    <>
+      <TouchableOpacity onPress={() =>
+        navigation.navigate("RecipeDetail", { id: item._id }) // 👈 truyền object recipe
+      } style={styles.card} activeOpacity={0.9}>
+        <Image  source={{ uri: item.thumbnail }} style={styles.cardImage} />
+        <TouchableOpacity style={styles.heartIcon}>
+          <Ionicons name="heart-outline" size={20} color="#FF6B00" />
+        </TouchableOpacity>
+        <View style={styles.cardContent}>
+          <Text  style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+          <View style={styles.cardMeta}>
+            <View style={styles.cardMetaItem}>
+              <Ionicons name="time-outline" size={12} color="#888" />
+              <Text  style={styles.cardMetaText}>{item.time.total}</Text>
+            </View>
+            <View style={styles.cardMetaItem}>
+              <Ionicons name="speedometer-outline" size={12} color="#888" />
+              <Text style={styles.cardMetaText}>{item.difficulty}</Text>
+            </View>
+          </View>
+          {/* <Text style={styles.cardChef}>By: {item.createdBy}</Text> */}
+          <View style={styles.cardRatingContainer}>
+            <Ionicons name="star" size={14} color="#FFD700" />
+            <Text style={styles.cardRating}>{getAverageRating(item.ratings)}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </>
   );
 
   const renderPagination = () => (
@@ -318,7 +398,7 @@ export default function HomeScreen({ navigation }) {
         numColumns={2} // 👉 chia 2 cột
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderPagination}   // 👈 pagination nằm trong list
-        columnWrapperStyle={{ justifyContent: 'space-evenly' }} // căn giữa 2 item
+        columnWrapperStyle={{ justifyContent: 'space-evenly', marginLeft: 18 }} // căn giữa 2 item
         contentContainerStyle={{ paddingBottom: 24 }} // padding tổng thể + dưới
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
@@ -343,7 +423,7 @@ export default function HomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   containerHeader: {
-    
+
   },
   center: {
     flex: 1,
@@ -385,46 +465,56 @@ const styles = StyleSheet.create({
 
   // Simple Carousel Styles
   containerCarousel: {
-    alignItems: "center",
-    marginVertical: 20,
+    marginHorizontal: 15,
   },
+  
+  // Sample Carousel Pagination
   cardCarousel: {
-    flex: 1,
-    borderRadius: 16,
-    backgroundColor: "#fff",
-    overflow: "hidden", // để bo góc ảnh
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'flex-end',
+    padding: 13,
   },
-  imageCarousel: {
-    width: "100%",
-    height: 160,
+  overlayCarousel: {
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius: 15,
+    padding: 10,
   },
   titleCarousel: {
-    fontSize: 16,
-    fontWeight: "600",
-    textAlign: "center",
-    paddingVertical: 10,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
   },
-  dotContainerCarousel: {
-    flexDirection: "row",
-    justifyContent: "center",
+  subtitleCarousel: {
+    fontSize: 14,
+    color: '#fff',
+    marginVertical: 5,
+  },
+  buttonCarousel: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 15,
+    alignSelf: 'flex-start',
+  },
+  buttonTextCarousel: {
+    color: '#000',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+  paginationCarousel: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     marginTop: 10,
   },
   dotCarousel: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#ccc",
+    backgroundColor: '#333',
     marginHorizontal: 4,
   },
-  activeDotCarousel: {
-    backgroundColor: "tomato",
-    width: 10,
-    height: 10,
-  },
+  // End Simple Carousel Styles
   // Section Styles
   section: {
     marginBottom: 24,
@@ -480,34 +570,50 @@ const styles = StyleSheet.create({
     color: "#666",
     fontWeight: '500',
   },
-  // cardDesserts
-  cardDesserts: {
-    width: cardWidthDesserts,
-    // marginRight: cardMargin,
-    // marginLeft: cardMargin,
-    height: cardWidthDesserts * 1.2,
-    marginBottom: 16,
-    borderRadius: 16,
-    overflow: "hidden",
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+  
+  itemContainerPicks: {
+    width: ITEM_WIDTH,
+    backgroundColor: '#ffffffff',
+    borderRadius: 12,
+    overflow: 'visible',
+    marginTop: 60,
+    paddingBottom: 40,
+    shadowColor: '#ffffffff',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    // Android shadow
+    elevation: 5,
   },
-  imageDesserts: {
-    width: '100%',
-    height: '100%',
+  imagePicks: {
+
+    width: 120,
+    height: 120,
+    borderRadius: 80, // = width/2 để tròn hoàn toàn
+    alignSelf: 'center',
+    marginTop: -50,
+
   },
-  titleDesserts: {
-    padding: 8,
+  infoPicks: {
+    padding: 10,
+  },
+  titlePicks: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  timePicks: {
+    color: '#555',
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+  },
+  ratingPicks: {
+    position: 'absolute',
+    top: -40,
+    right: 35,
+    backgroundColor: '#ffe1a6dd',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
   },
   // end cardDesserts
   // Card Styles
@@ -523,11 +629,13 @@ const styles = StyleSheet.create({
       width: 0,
       height: 4,
     },
+
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
+    marginBottom: 15,
   },
-  
+
   cardImage: {
     width: "100%",
     height: 140
@@ -715,6 +823,9 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
   },
   // Banner Card Styles
+  containerBanner: {
+    marginBottom: 0,
+  },
   bannerCard: {
     width: BANNER_WIDTH,
     height: BANNER_HEIGHT,
@@ -727,7 +838,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
     alignSelf: 'center', // căn giữa màn hình
-    marginVertical: 16,
+    marginBottom: 30,
   },
   bannerImage: {
     width: '100%',
@@ -741,4 +852,67 @@ const styles = StyleSheet.create({
   description: { fontSize: 12, color: '#777' },
 
   // End Banner Card Styles
+  // Top Picks Styles
+  itemContainerPicks: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    width: 250,
+    height: 120,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    alignItems: 'center',
+  },
+  contentPicks: {
+    flex: 1,
+    paddingRight: 12,
+    justifyContent: 'center',
+  },
+  titlePicks: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 6,
+    lineHeight: 20,
+  },
+  ratingPicks: {
+    marginBottom: 8,
+  },
+  starText: {
+    fontSize: 12,
+    color: '#FFB800',
+  },
+  metaInfoPicks: {
+    gap: 4,
+  },
+  authorPicks: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
+  },
+  timePicks: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
+  },
+  imageContainerPicks: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    overflow: 'hidden',
+    backgroundColor: '#f5f5f5',
+  },
+  imagePicks: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  // End Top Picks Styles
 });

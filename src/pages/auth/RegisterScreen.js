@@ -120,6 +120,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { authApi } from "../../api/api.js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Social from "../../components/social/social.js";
 export default function RegisterScreen({ navigation }) {
   const [hidePassword, setHidePassword] = useState(true);
   const [hideConfirmPassword, setHideConfirmPassword] = useState(true);
@@ -265,17 +266,7 @@ export default function RegisterScreen({ navigation }) {
       <Text style={styles.or}>─────── or continue with ───────</Text>
 
       {/* Social buttons */}
-      <View style={styles.socialContainer}>
-        <TouchableOpacity style={styles.socialBtn}>
-          <Ionicons name="logo-google" size={24} color="red" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialBtn}>
-          <Ionicons name="logo-apple" size={24} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialBtn}>
-          <Ionicons name="logo-facebook" size={24} color="#1877F2" />
-        </TouchableOpacity>
-      </View>
+      <Social />
 
       {/* Already member */}
       <View style={styles.loginContainer}>
@@ -348,18 +339,7 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 20,
   },
-  socialContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "60%",
-    marginBottom: 25,
-  },
-  socialBtn: {
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    elevation: 2,
-  },
+  
   loginContainer: {
     flexDirection: "row",
   },

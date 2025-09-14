@@ -22,6 +22,7 @@ export default function MainTabs({ navigation }) {
         else if (route.name === "Search") iconName = focused ? "search" : "search-outline";
         else if (route.name === "Profile") iconName = focused ? "person" : "person-outline";
         else if (route.name === "AllUser") iconName = focused ? "people" : "people-outline";
+        else if (route.name === "CookHistory") iconName = focused ? "time" : "time-outline";
 
         return <Ionicons name={iconName} size={size} color={color} />;
       },
@@ -33,7 +34,7 @@ export default function MainTabs({ navigation }) {
         component={HomeScreen}
         options={{
           headerShown: true,
-          headerTitle: "RecipeBook",
+          headerTitle: "Recipes Book",
           headerTitleAlign: "center",
           headerStyle: {
             backgroundColor: APP_COLOR.ORANGE,
@@ -135,9 +136,9 @@ export default function MainTabs({ navigation }) {
           </TouchableOpacity>
         ),
       })} />
-      <Tab.Screen name="SavedRecipes" component={SavedRecipesScreen} options={({ navigation }) => ({
+      <Tab.Screen name="CookHistory" component={SavedRecipesScreen} options={({ navigation }) => ({
         headerShown: true,
-        headerTitle: "SavedRecipes",
+        headerTitle: "Cook History",
         headerTitleAlign: "center",
         headerStyle: {
           backgroundColor: APP_COLOR.ORANGE,
@@ -154,7 +155,7 @@ export default function MainTabs({ navigation }) {
             style={{ marginLeft: 15 }}
             onPress={() => navigation.goBack()} // hoặc mở drawer
           >
-            <Ionicons name="menu" size={24} color="#fff" />
+            <Ionicons name="receipt" size={24} color="#fff" />
           </TouchableOpacity>
         ),
         // headerRight: chỉnh sửa profile
@@ -163,7 +164,7 @@ export default function MainTabs({ navigation }) {
             style={{ marginRight: 15 }}
             onPress={() => navigation.navigate("EditProfileScreen")}
           >
-            <Ionicons name="create-outline" size={24} color="#fff" />
+            <Ionicons name="list-outline" size={24} color="#fff" />
           </TouchableOpacity>
         ),
       })} />

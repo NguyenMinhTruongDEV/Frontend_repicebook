@@ -27,14 +27,14 @@ export default function EditProfile() {
   const user = useSelector((state) => state.user.data);
 
   // State để edit
-  const [username, setUsername] = useState(user.username);
+  
   const [fullname, setFullname] = useState(user.fullname);
   const [email, setEmail] = useState(user.email);
   const [avatar, setAvatar] = useState(user.avatar);
 
   // Cập nhật state nếu Redux thay đổi
   useEffect(() => {
-    setUsername(user.username);
+    
     setFullname(user.fullname);
     setEmail(user.email);
     setAvatar(user.avatar);
@@ -59,7 +59,7 @@ export default function EditProfile() {
           if (!result.canceled && result.assets?.length > 0) {
             const uri = result.assets[0].uri;
             setAvatar(uri);
-            handleUpdateAvatar(uri); // upload ngay
+            // handleUpdateAvatar(uri); // upload ngay
           }
         },
       },
@@ -80,7 +80,7 @@ export default function EditProfile() {
           if (!result.canceled && result.assets?.length > 0) {
             const uri = result.assets[0].uri;
             setAvatar(uri);
-            handleUpdateAvatar(uri); // upload ngay
+            // handleUpdateAvatar(uri); // upload ngay
           }
         },
       },
@@ -94,7 +94,7 @@ export default function EditProfile() {
           if (!result.canceled && result.assets?.length > 0) {
             const uri = result.assets[0].uri;
             setAvatar(uri);
-            handleUpdateAvatar(uri); // upload ngay
+            // handleUpdateAvatar(uri); // upload ngay
           }
         },
       },
@@ -105,13 +105,13 @@ export default function EditProfile() {
 
   // Update profile thông tin cơ bản
   const handleSave = async () => {
-    if (!username.trim() || !fullname.trim() || !email.trim()) {
+    if (!fullname.trim() || !email.trim()) {
       Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin!");
       return;
     }
 
     try {
-      const newData = { username, fullname, email };
+      const newData = { fullname, email };
       const res = await authApi.editProfile(newData);
       // { fullname: res.data.data.fullname, email: res.data.data.email }
       console.log("API response:", res.data);
@@ -168,13 +168,6 @@ export default function EditProfile() {
 
       {/* Input fields */}
       <View style={styles.form}>
-        <Text style={styles.label}>Username</Text>
-        <TextInput
-          style={styles.input}
-          value={username}
-          onChangeText={setUsername}
-        />
-
         <Text style={styles.label}>Fullname</Text>
         <TextInput
           style={styles.input}

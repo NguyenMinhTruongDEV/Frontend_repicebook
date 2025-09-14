@@ -10,7 +10,7 @@ import {
   Alert,
   StyleSheet,
 } from "react-native";
-
+import { useSelector } from 'react-redux';
 const CommentModal = ({
   visible,
   onClose,
@@ -22,7 +22,8 @@ const CommentModal = ({
   handleDeleteComment,
 }) => {
   const flatListRef = useRef(null);
-
+ const userProfile = useSelector(state => state.user.data);
+  const userId = userProfile ? userProfile.id : null;
   return (
     <Modal
       visible={visible}     // ✅ đúng
@@ -62,8 +63,10 @@ const CommentModal = ({
                 borderRadius: 8,
               }}
             >
-              <Text style={{ fontWeight: "bold", marginBottom: 4 }}>{item.user}</Text>
-              <Text style={{ marginBottom: 4 }}>{item.content}</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+                <Text style={{ fontWeight: "bold", marginBottom: 4 }}>{item.content}</Text>
+                {String(item.user) === String(userId) && <Text> • của tôi</Text>}
+              </View>       
               <View style={{ flexDirection: "row", columnGap: 20 }}>
                 <Text style={{ fontSize: 12, color: "#999" }}>
                   {item.createdAt ? new Date(item.createdAt).toLocaleString() : ""}
