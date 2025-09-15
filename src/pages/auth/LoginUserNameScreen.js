@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authApi } from '../../api/api.js';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../slice/userSlice.js'; // ← import từ file slice bạn tạo
-import Social from "../../components/social/social.js";
+import Social from "../../components/Social/Social.js";
 const LoginUserNameScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const [hidePassword, setHidePassword] = useState(true);

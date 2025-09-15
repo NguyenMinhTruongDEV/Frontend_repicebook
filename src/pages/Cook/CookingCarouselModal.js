@@ -1,5 +1,5 @@
 import React, { useRef, useState, useMemo, useCallback } from 'react';
-import { Modal, View, FlatList, Button, Dimensions, Alert, StyleSheet } from 'react-native';
+import { Modal, View, FlatList, TouchableOpacity, Text, Dimensions, Alert, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch, useSelector } from 'react-redux';
 import { addRecipe } from '../../slice/recipeSlice';
@@ -11,7 +11,7 @@ import StepTimeComplete from './StepTimeComplete';
 import StepComplete from './StepComplete';
 
 const { width } = Dimensions.get('window');
-const PAGE_WIDTH = width - 40;
+const PAGE_WIDTH = width * 0.7; // gọn hơn
 
 const CookingCarouselModal = ({ visible, onClose, recipe }) => {
   const dispatch = useDispatch();
@@ -52,7 +52,6 @@ const CookingCarouselModal = ({ visible, onClose, recipe }) => {
       flatListRef.current.scrollToIndex({ index: nextIndex, animated: true, viewPosition: 0 });
       setCurrentIndex(nextIndex);
     } else {
-      // Hoàn thành → lưu recipe
       if (userId) {
         const recipeToSave = {
           id: recipe.id ? recipe.id.toString() : new Date().getTime().toString(),
@@ -66,10 +65,8 @@ const CookingCarouselModal = ({ visible, onClose, recipe }) => {
           })),
         };
 
-        // Redux
         dispatch(addRecipe(recipeToSave));
 
-        // AsyncStorage
         const saved = await AsyncStorage.getItem('savedRecipes');
         let recipes = saved ? JSON.parse(saved) : [];
         recipes.push(recipeToSave);
@@ -86,7 +83,7 @@ const CookingCarouselModal = ({ visible, onClose, recipe }) => {
     switch (item.type) {
       case 'ingredients':
         return (
-          <View style={{ width: PAGE_WIDTH }}>
+          <View style={styles.page}>
             <StepIngredients
               ingredients={item.ingredients}
               numPeople={numPeople}
@@ -97,13 +94,13 @@ const CookingCarouselModal = ({ visible, onClose, recipe }) => {
         );
       case 'cooking':
         return (
-          <View style={{ width: PAGE_WIDTH }}>
+          <View style={styles.page}>
             <StepCooking stepIndex={index - 1} step={item.step} />
           </View>
         );
       case 'timeComplete':
         return (
-          <View style={{ width: PAGE_WIDTH }}>
+          <View style={styles.page}>
             <StepTimeComplete
               prepTime={item.prepTime}
               cookTime={item.cookTime}
@@ -114,7 +111,7 @@ const CookingCarouselModal = ({ visible, onClose, recipe }) => {
         );
       case 'complete':
         return (
-          <View style={{ width: PAGE_WIDTH }}>
+          <View style={styles.page}>
             <StepComplete />
           </View>
         );
@@ -130,7 +127,7 @@ const CookingCarouselModal = ({ visible, onClose, recipe }) => {
   });
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.modalContent}>
           <FlatList
@@ -144,10 +141,17 @@ const CookingCarouselModal = ({ visible, onClose, recipe }) => {
             showsHorizontalScrollIndicator={false}
             getItemLayout={getItemLayout}
           />
-          <Button
-            title={currentIndex === steps.length - 1 ? 'Hoàn thành' : 'Next'}
-            onPress={handleNext}
-          />
+
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
+              <Text style={styles.cancelText}>Đóng</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, styles.nextButton]} onPress={handleNext}>
+              <Text style={styles.nextText}>
+                {currentIndex === steps.length - 1 ? 'Hoàn thành' : 'Tiếp tục'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -155,8 +159,53 @@ const CookingCarouselModal = ({ visible, onClose, recipe }) => {
 };
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContent: { backgroundColor: 'white', margin: 20, padding: 20, borderRadius: 10, width: PAGE_WIDTH },
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 14,
+    width: width * 0.75,   // nhỏ gọn hơn
+    maxHeight: '60%',      // ngắn
+    alignItems: 'center',
+  },
+  page: {
+    width: PAGE_WIDTH,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    width: '100%',
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 8,
+    marginHorizontal: 5,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#eee',
+  },
+  cancelText: {
+    color: '#555',
+    fontWeight: '600',
+  },
+  nextButton: {
+    backgroundColor: '#ff7043',
+  },
+  nextText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 14,
+  },
 });
 
 export default CookingCarouselModal;

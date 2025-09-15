@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, FlatList, Image, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator, Button, Dimensions, ImageBackground } from 'react-native';
+import { categories } from '../../data/categories.js';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { recipesApi } from "../../api/api.js"
 import Pagination from '../../components/Pagination/Pagination.js';
@@ -9,14 +10,6 @@ import { useDebounce } from "../../hook/useDebounce.js"
 import { Picker } from "@react-native-picker/picker";
 import { useSelector } from "react-redux";
 const { width } = Dimensions.get('window');
-const categories = [
-  { id: '1', name: 'Beef', value: 'Việt Nam', image: require('../../../assets/beef_pie.jpg') },
-  { id: '2', name: 'Chicken', value: 'Chicken', image: require('../../../assets/beef_pie.jpg') },
-  { id: '3', name: 'Dessert', value: 'Dessert', image: require('../../../assets/beef_pie.jpg') },
-  { id: '4', name: 'Lamb', value: 'Lamb', image: require('../../../assets/beef_pie.jpg') },
-  { id: '5', name: 'Miscellaneous', value: 'Miscellaneous', image: require('../../../assets/beef_pie.jpg') },
-];
-
 
 const SearchScreen = ({ navigation }) => {
   const userProfile = useSelector(state => state.user.data);
@@ -116,11 +109,11 @@ const SearchScreen = ({ navigation }) => {
       <View style={styles.header}>
         <TouchableOpacity>
           {/* Title */}
-          <Text style={styles.title}>Make your own food,</Text>
-          <Text style={styles.subtitle}>stay at <Text style={{ color: '#F4A261' }}>home</Text></Text>
+          <Text style={styles.titleHeader}>Make your own food,</Text>
+          <Text style={styles.subtitleHeader}>stay at <Text style={{ color: '#F4A261' }}>home</Text></Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
-          <Image source={{ uri: userProfile.avatar }} style={styles.avatar} />
+          <Image source={{ uri: userProfile.avatar }} style={styles.avatarHeader} />
         </TouchableOpacity>
       </View>
 
@@ -237,7 +230,15 @@ const SearchScreen = ({ navigation }) => {
               <ImageBackground source={{ uri: item.thumbnail }} style={styles.image} imageStyle={styles.imageStyle}>
                 <View style={styles.textContainer}>
                   <Text style={styles.title}>{item.title}</Text>
-                  <Text style={styles.date}>Date {item.createdAt ? new Date(item.createdAt).toLocaleString() : ""}</Text>
+                  <Text style={styles.date}>Date {item.createdAt
+                    ? new Date(item.createdAt).toLocaleString("vi-VN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                    : ""}</Text>
                 </View>
               </ImageBackground>
             </TouchableOpacity>
@@ -252,10 +253,10 @@ const SearchScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 15 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 5 },
-  avatar: { width: 40, height: 40, borderRadius: 20 },
-  bell: { width: 24, height: 24 },
-  title: { fontSize: 24, fontWeight: 'bold', marginTop: 20 },
-  subtitle: { fontSize: 24, marginBottom: 15 },
+  avatarHeader: { width: 40, height: 40, borderRadius: 20 },
+  bellHeader: { width: 24, height: 24 },
+  titleHeader: { fontSize: 24, fontWeight: 'bold', marginTop: 20 },
+  subtitleHeader: { fontSize: 24, marginBottom: 15 },
   searchContainer: {
     marginVertical: 10,
     flexDirection: 'row',

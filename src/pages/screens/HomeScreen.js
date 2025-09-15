@@ -4,6 +4,8 @@ import { ScrollView, TouchableOpacity, Text, Image, View, ActivityIndicator, Sty
 import { Ionicons } from "@expo/vector-icons";
 import { recipesApi } from '../../api/api.js';
 import Pagination from '../../components/Pagination/Pagination.js';
+import { categories } from '../../data/categories.js';
+import { staticBanner, BannerCarousel } from '../../data/Banner.js';
 import { useSelector } from "react-redux";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
@@ -19,75 +21,6 @@ const ITEM_WIDTH = (width - 40) / 2; // 2 cột, margin 20
 const BANNER_WIDTH = width * 0.9; // rộng 90% màn hình
 const BANNER_HEIGHT = 250;
 
-const staticBanner = {
-  id: '1',
-  title: '20% Off Premium',
-  subtitle: 'Limited time offer',
-  description: 'Get access to exclusive recipes',
-  image: require('../../../assets/beef_pie.jpg'),
-};
-const categories = [
-  { id: "1", name: "Breakfast", icon: require('../../../assets/beef_pie.jpg') },
-  { id: "2", name: "Beef", icon: require('../../../assets/beef_pie.jpg') },
-  { id: "3", name: "Chicken", icon: require("../../../assets/beef_pie.jpg") },
-  { id: "4", name: "Dessert", icon: require("../../../assets/beef_pie.jpg") },
-  { id: "5", name: "All", icon: require("../../../assets/beef_pie.jpg") },
-];
-
-const BannerCarousel = [
-  {
-    id: '1',
-    title: '20% Off Premium',
-    subtitle: 'Limited time offer',
-    description: 'Get access to exclusive recipes',
-    image: require('../../../assets/beef_pie.jpg'),
-  },
-  {
-    id: '2',
-    title: '20% Off Premium',
-    subtitle: 'Limited time offer',
-    description: 'Get access to exclusive recipes',
-    image: require('../../../assets/beef_pie.jpg'),
-  },
-  {
-    id: '3',
-    title: '20% Off Premium',
-    subtitle: 'Limited time offer',
-    description: 'Get access to exclusive recipes',
-    image: require('../../../assets/beef_pie.jpg'),
-  },
-  {
-    id: '4',
-    title: '20% Off Premium',
-    subtitle: 'Limited time offer',
-    description: 'Get access to exclusive recipes',
-    image: require('../../../assets/beef_pie.jpg'),
-  },
-];
-
-const bannerData = [
-  {
-    id: '1',
-    title: '20% Off Premium',
-    subtitle: 'Limited time offer',
-    description: 'Get access to exclusive recipes',
-    image: require('../../../assets/beef_pie.jpg')
-  },
-  {
-    id: '2',
-    title: 'New Recipes',
-    subtitle: 'Weekly updates',
-    description: 'Fresh content every week',
-    image: require('../../../assets/beef_pie.jpg')
-  },
-  {
-    id: '3',
-    title: 'Top Chefs',
-    subtitle: 'Expert guidance',
-    description: 'Learn from the best chefs',
-    image: require('../../../assets/beef_pie.jpg')
-  },
-];
 
 export default function HomeScreen({ navigation }) {
   const userProfile = useSelector(state => state.user.data);
@@ -145,11 +78,21 @@ export default function HomeScreen({ navigation }) {
       </View>
     );
   }
+  // ✅ Tính số sao trung bình, luôn return Number
   const getAverageRating = (ratings = []) => {
-    if (!ratings.length) return 0;
-    const sum = ratings.reduce((acc, r) => acc + (r.stars || 0), 0);
-    return (sum / ratings.length).toFixed(1); // làm tròn 1 chữ số thập phân
+    if (!Array.isArray(ratings) || ratings.length === 0) return 0;
+    const sum = ratings.reduce((acc, r) => acc + (r?.stars || 0), 0);
+    return Number((sum / ratings.length).toFixed(1)); // làm tròn 1 chữ số thập phân
   };
+
+  // ✅ Hiển thị sao theo rating (tối đa 5 sao)
+  const renderStars = (rating) => {
+    const avg = Math.round(rating); // làm tròn để hiển thị sao
+    const filledStars = '⭐'.repeat(avg);
+    const emptyStars = '☆'.repeat(5 - avg);
+    return filledStars + emptyStars;
+  };
+  
   const renderHeader = () => (
     <SafeAreaView style={styles.containerHeader}>
 
@@ -159,59 +102,18 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.welcomeText}>Welcome Back!</Text>
           <Text style={styles.userName}>{userProfile.username}</Text>
         </View>
-        <TouchableOpacity style={styles.notificationButton}>
-          <Ionicons name="notifications-outline" size={24} color="#333" />
-          <View style={styles.notificationBadge} />
+        <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={styles.notificationButton}>
+         <Image source={{ uri: userProfile.avatar }} style={styles.avatarHeader} />
+          {/* <View style={styles.notificationBadge} /> */}
         </TouchableOpacity>
       </View>
-      {/* <View style={styles.containerCarousel}>
-        <Carousel
-          loop
-          width={width - 40}
-          height={220}
-          autoPlay={true}
-          data={desserts}
-          scrollAnimationDuration={1000}
-          onSnapToItem={(index) => setCurrentIndex(index % desserts.length)}
-          renderItem={({ item }) => (
-            <View style={styles.cardCarousel}>
-              <Image
-                source={{ uri: item.thumbnail || "https://via.placeholder.com/200" }}
-                style={styles.imageCarousel}
-                resizeMode="cover"
-              />
-              
-              <View style={styles.overlayCarousel}>
-                <Text style={styles.titleCarousel}>{item.title}</Text>
-                {item.subtitle && <Text style={styles.subtitleCarousel}>{item.subtitle}</Text>}
-                <TouchableOpacity style={styles.buttonCarousel}>
-                  <Text style={styles.buttonTextCarousel}>Shop Now</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-        />
-
-        
-        <View style={styles.dotContainerCarousel}>
-          {desserts.map((_, index) => (
-            <View
-              key={index}
-              style={[styles.dotCarousel, currentIndex === index && styles.activeDotCarousel]}
-            />
-          ))}
-        </View>
-      </View> */}
-      
+      {/* end header */}
 
       <View style={styles.containerCarousel}>
         <Carousel
-         
           height={220}
-         
           loop
           width={width}
-          
           autoPlay={true}
           data={BannerCarousel}
           onSnapToItem={(index) => setCurrentIndex(index)}
@@ -264,7 +166,7 @@ export default function HomeScreen({ navigation }) {
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.categoryItem} activeOpacity={0.8}>
               <View style={styles.categoryIconContainer}>
-                <Image source={item.icon} style={styles.categoryIcon} />
+                <Image source={item.image} style={styles.categoryIcon} />
               </View>
               <Text style={styles.categoryText}>{item.name}</Text>
             </TouchableOpacity>
@@ -299,10 +201,18 @@ export default function HomeScreen({ navigation }) {
                   navigation.navigate("RecipeDetail", { id: item._id }) // 👈 truyền object recipe
                 } style={styles.titlePicks}>{item.title}</Text>
                 <View style={styles.ratingPicks}>
-                  <Text style={styles.starText}>⭐⭐⭐⭐</Text>
+                  <Text style={styles.starText}> 
+                    {renderStars(getAverageRating(item.ratings))} ({getAverageRating(item.ratings)})
+                  </Text>
                 </View>
                 <View style={styles.metaInfoPicks}>
-                  <Text style={styles.authorPicks}>👨‍🍳 By {item.author || 'Priyath Sagar'}</Text>
+                  <Text style={styles.authorPicks}>👨‍🍳 By Date {item.createdAt
+                    ? new Date(item.createdAt).toLocaleDateString("vi-VN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })
+                    : ""}</Text>
                   <Text style={styles.timePicks}>🕒 {item.time?.total || '30min'}</Text>
                 </View>
               </View>
@@ -449,19 +359,20 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#333"
   },
+  avatarHeader: { width: 40, height: 40, borderRadius: 20 },
   notificationButton: {
     position: 'relative',
     padding: 8,
   },
-  notificationBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FF6B00',
-  },
+  // notificationBadge: {
+  //   position: 'absolute',
+  //   top: 8,
+  //   right: 8,
+  //   width: 8,
+  //   height: 8,
+  //   borderRadius: 4,
+  //   backgroundColor: '#FF6B00',
+  // },
 
   // Simple Carousel Styles
   containerCarousel: {

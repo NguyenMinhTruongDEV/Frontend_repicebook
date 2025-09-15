@@ -3,8 +3,8 @@ import { View, Text, StyleSheet } from 'react-native';
 
 const StepCooking = ({ stepIndex, step }) => (
   <View style={styles.page}>
-    <Text style={styles.step}>Bước {stepIndex + 1}:</Text>
-    <Text style={styles.text}>{step}</Text>
+    <Text style={styles.step}>Bước {stepIndex + 1}: {step}</Text>
+    {/* <Text style={styles.text}>{step}</Text> */}
   </View>
 );
 
