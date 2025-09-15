@@ -160,9 +160,9 @@ const SearchScreen = ({ navigation }) => {
               style={styles.picker}
             >
               <Picker.Item label="-- Chọn thời gian --" value="" />
-              <Picker.Item label="newest" value="newest" />
-              <Picker.Item label="popular" value="popular" />
-              <Picker.Item label="oldest" value="oldest" />
+              <Picker.Item label="Mới Nhất" value="newest" />
+              <Picker.Item label="Phổ Biến" value="popular" />
+              <Picker.Item label="Lâu Nhất" value="oldest" />
             </Picker>
           </View>
 

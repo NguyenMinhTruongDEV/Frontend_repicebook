@@ -30,7 +30,7 @@ const RatingModal = ({
   handleUpdateRating,
   handleDeleteRating,     // xóa rating nếu cần
 }) => {
-  
+
   const userProfile = useSelector(state => state.user.data);
   const userId = userProfile ? userProfile.id : null;
   const flatListRef = useRef(null);
@@ -51,8 +51,8 @@ const RatingModal = ({
             />
           ))}
       </View>
-      
-      
+
+
       <Text >
         {new Date(item.updatedAt || item.createdAt || Date.now()).toLocaleString()}
         {String(item.user) === String(userId) && <Text> • của tôi</Text>}
@@ -196,10 +196,13 @@ const RatingModal = ({
                   />
 
                   {/* Nút gửi mới */}
-                  <Button
+                  {/* <Button
                     title="Send"
                     onPress={handleAddRating}
-                  />
+                  /> */}
+                  <TouchableOpacity style={styles.buttonSend} onPress={handleAddRating}>
+                    <Text style={styles.textSend}>Send</Text>
+                  </TouchableOpacity>
                 </>
               )
             )}
@@ -249,6 +252,20 @@ const styles = StyleSheet.create({
     padding: 8,
     backgroundColor: "#eee",
     borderRadius: 20,
+  },
+  // Nút Send
+  buttonSend: {
+    backgroundColor: "#FF7F50", // cam nhạt
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  textSend: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
 

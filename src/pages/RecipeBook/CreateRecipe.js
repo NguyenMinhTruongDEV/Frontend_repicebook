@@ -206,7 +206,7 @@ export default function CreateRecipe({ navigation }) {
       console.log("Server response:", res.data);
       const recipeTitle = res.data?.title || res.data?.data?.title || "Recipe";
       Alert.alert("Thành công", `Recipe "${recipeTitle}" đã được lưu!`);
-
+      navigation.goBack();
       // Reset form
       setTitle("");
       setSummary("");
@@ -436,7 +436,7 @@ export default function CreateRecipe({ navigation }) {
         >
           <Icon name="update" size={20} color="#fff" style={{ marginRight: 8 }} />
           <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>
-            Cập nhật công thức
+            Tạo công thức
           </Text>
         </TouchableOpacity>
       </View>

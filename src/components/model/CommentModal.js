@@ -22,7 +22,7 @@ const CommentModal = ({
   handleDeleteComment,
 }) => {
   const flatListRef = useRef(null);
- const userProfile = useSelector(state => state.user.data);
+  const userProfile = useSelector(state => state.user.data);
   const userId = userProfile ? userProfile.id : null;
   return (
     <Modal
@@ -66,7 +66,7 @@ const CommentModal = ({
               <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
                 <Text style={{ fontWeight: "bold", marginBottom: 4 }}>{item.content}</Text>
                 {String(item.user) === String(userId) && <Text> • của tôi</Text>}
-              </View>       
+              </View>
               <View style={{ flexDirection: "row", columnGap: 20 }}>
                 <Text style={{ fontSize: 12, color: "#999" }}>
                   {item.createdAt ? new Date(item.createdAt).toLocaleString() : ""}
@@ -124,7 +124,10 @@ const CommentModal = ({
             value={newComment}
             onChangeText={setNewComment}
           />
-          <Button title="Send" onPress={handleAddComment} />
+          {/* <Button title="Send" onPress={handleAddComment} /> */}
+          <TouchableOpacity style={styles.buttonSend} onPress={handleAddComment}>
+            <Text style={styles.textSend}>Send</Text>
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity
@@ -144,5 +147,21 @@ const CommentModal = ({
     </Modal>
   )
 }
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  // Nút Send
+  buttonSend: {
+    backgroundColor: "#FF7F50", // cam nhạt
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 5,
+  },
+  textSend: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+})
 export default CommentModal

@@ -53,7 +53,7 @@ const RecipeDetail = ({ route, navigation }) => {
   );
   useEffect(() => {
     if (recipe?.ingredients) {
-      console.log("Length recipe",recipe?.ingredients)
+      // console.log("Length recipe ingredients",recipe?.ingredients)
       setIngredients(
         recipe.ingredients.map(item => ({
           ...item,
@@ -62,6 +62,7 @@ const RecipeDetail = ({ route, navigation }) => {
       );
     }
   }, [recipe]);
+
   const [modalVisible, setModalVisible] = useState(false);
 
   //  End Cooking

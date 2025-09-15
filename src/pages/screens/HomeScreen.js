@@ -100,10 +100,10 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.header}>
         <View>
           <Text style={styles.welcomeText}>Welcome Back!</Text>
-          <Text style={styles.userName}>{userProfile.username}</Text>
+          <Text style={styles.userName}>{userProfile?.username}</Text>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={styles.notificationButton}>
-         <Image source={{ uri: userProfile.avatar }} style={styles.avatarHeader} />
+         <Image source={{ uri: userProfile?.avatar }} style={styles.avatarHeader} />
           {/* <View style={styles.notificationBadge} /> */}
         </TouchableOpacity>
       </View>
